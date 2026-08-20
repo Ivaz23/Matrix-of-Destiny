@@ -1,0 +1,117 @@
+{
+  "id": "/?source=pwa",
+  "name": "Catharsis Matrix",
+  "short_name": "Catharsis",
+  "description": "Сакральная Матрица Судьбы, Натальная Астрология, Чакры и Прогнозы для Android",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#050a14",
+  "theme_color": "#050a14",
+  "lang": "ru",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "categories": [
+    "lifestyle",
+    "utilities",
+    "entertainment"
+  ],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Мобильный экран Матрицы Судьбы"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Панель расчёта арканов и чакр"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Матрица Судьбы",
+      "short_name": "Матрица",
+      "description": "Рассчитать 22 аркана души",
+      "url": "/?tab=matrix",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Ежедневный Прогноз",
+      "short_name": "Прогноз",
+      "description": "Энергии дня и биоритмы",
+      "url": "/?tab=daily",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Карта Чакр",
+      "short_name": "Чакры",
+      "description": "Диагностика 7 энергоцентров",
+      "url": "/?tab=chakras",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Обои 9:16",
+      "short_name": "Обои",
+      "description": "Сакральные талисманы на экран",
+      "url": "/?tab=wallpapers",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

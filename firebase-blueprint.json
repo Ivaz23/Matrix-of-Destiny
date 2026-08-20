@@ -1,0 +1,45 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "SavedCalculation": {
+      "title": "SavedCalculation",
+      "description": "A saved numerology/astrology calculation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "input": { "type": "object" },
+        "matrix": { "type": "object" },
+        "astrology": { "type": "object" },
+        "analysis": { "type": "object" },
+        "astrologyResult": { "type": "object" },
+        "compatibilityResult": { "type": "object" },
+        "tarotReading": { "type": "object" }
+      },
+      "required": ["id", "userId", "timestamp", "input", "matrix", "astrology"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/users/{userId}/calculations/{calcId}": {
+      "schema": "SavedCalculation",
+      "description": "User's saved calculations"
+    }
+  }
+}

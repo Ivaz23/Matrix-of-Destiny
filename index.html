@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <title>Catharsis Matrix | Эзотерическая Платформа</title>
+    
+    <!-- Android & PWA Meta Tags -->
+    <meta name="theme-color" content="#050a14" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Catharsis Matrix" />
+    <meta name="application-name" content="Catharsis Matrix" />
+    <meta name="msapplication-TileColor" content="#050a14" />
+    <meta name="color-scheme" content="dark" />
+    
+    <!-- PWA Manifest & App Icons -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://aistudiocdn.com/react@^19.2.0",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+        "react/": "https://aistudiocdn.com/react@^19.2.0/",
+        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0"
+      }
+    }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              serif: ['Cinzel', 'serif'],
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              'mystic-dark': '#050a14',
+              'mystic-gold': '#ffd700',
+              'mystic-purple': '#581c87',
+              'glass': 'rgba(255, 255, 255, 0.05)',
+            },
+            backgroundImage: {
+              'cosmic-gradient': 'radial-gradient(circle at center, #1a162e 0%, #000000 100%)',
+            },
+            animation: {
+              'float': 'float 6s ease-in-out infinite',
+              'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+              'pulse-glow': 'pulseGlow 3s infinite',
+            },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
+              },
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              pulseGlow: {
+                '0%, 100%': { boxShadow: '0 0 15px rgba(251, 191, 36, 0.1)' },
+                '50%': { boxShadow: '0 0 30px rgba(251, 191, 36, 0.3)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #000000;
+        color: #e2e8f0;
+      }
+      
+      /* 3D Glass Effect */
+      .card-3d {
+        background: rgba(20, 20, 35, 0.4);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-top: 1px solid rgba(255, 215, 0, 0.1);
+        border-left: 1px solid rgba(255, 255, 255, 0.05);
+        border-right: 1px solid rgba(0, 0, 0, 0.4);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+        box-shadow: 
+          0 10px 40px -10px rgba(0, 0, 0, 0.8),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+        transform-style: preserve-3d;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, background 0.3s;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      /* Sheen Effect */
+      .card-3d::before {
+        content: "";
+        position: absolute;
+        top: 0; left: -100%; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+        transition: 0.5s;
+        pointer-events: none;
+      }
+      
+      .card-3d:hover::before {
+        left: 100%;
+        transition: 0.7s;
+      }
+
+      .card-3d:hover {
+        transform: translateY(-5px) scale(1.005);
+        box-shadow: 
+          0 20px 50px -10px rgba(0, 0, 0, 0.9),
+          0 0 30px rgba(255, 215, 0, 0.05),
+          inset 0 0 0 1px rgba(255, 215, 0, 0.1);
+      }
+
+      /* Hoverable List Item with 3D feel */
+      .card-3d-item {
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .card-3d-item:hover {
+        transform: translateY(-2px) scale(1.01);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 215, 0, 0.2);
+        box-shadow: 0 10px 20px -5px rgba(0,0,0,0.5);
+      }
+
+      /* Pressed 3D Input */
+      .input-3d {
+        background: rgba(5, 5, 10, 0.6);
+        box-shadow: 
+          inset 2px 2px 5px rgba(0, 0, 0, 0.8), 
+          inset -1px -1px 2px rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+      }
+      
+      .input-3d:focus {
+        box-shadow: 
+          inset 2px 2px 5px rgba(0, 0, 0, 0.9), 
+          0 0 15px rgba(255, 215, 0, 0.2);
+        border-color: rgba(255, 215, 0, 0.3);
+      }
+
+      /* 3D Gold Button */
+      .btn-3d {
+        background: linear-gradient(145deg, #b48811, #ffd700);
+        color: #000;
+        box-shadow: 
+          0 4px 15px rgba(0, 0, 0, 0.5),
+          inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        border: none;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .btn-3d::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(rgba(255,255,255,0.2), transparent);
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      
+      .btn-3d:hover::after {
+        opacity: 1;
+      }
+      
+      .btn-3d:active {
+        transform: translateY(2px);
+        box-shadow: 
+          0 2px 5px rgba(0, 0, 0, 0.5),
+          inset 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+
+      .text-glow {
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+      }
+
+      .perspective-1000 {
+        perspective: 1000px;
+      }
+
+      /* Custom Scrollbar */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 215, 0, 0.3);
+        border-radius: 3px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 215, 0, 0.5);
+      }
+
+      @media print {
+        body {
+          background: white !important;
+          color: black !important;
+          text-shadow: none !important;
+        }
+        * {
+          text-shadow: none !important;
+          color: black !important;
+          box-shadow: none !important;
+        }
+        .no-print, header, footer, button, form, .fixed, canvas, .animate-spin {
+          display: none !important;
+        }
+        #printable-content {
+          display: block !important;
+          width: 100%;
+        }
+        .card-3d, .glass-card {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          backdrop-filter: none !important;
+          transform: none !important;
+          padding: 0 !important;
+          margin-bottom: 2rem !important;
+        }
+        h3, h4 {
+           color: #000 !important;
+           border-bottom: 1px solid #ccc;
+           padding-bottom: 0.5rem;
+        }
+        svg {
+          break-inside: avoid;
+          stroke: black !important;
+          fill: none !important;
+        }
+        .accordion-content {
+          display: block !important;
+          max-height: none !important;
+          opacity: 1 !important;
+        }
+        g.stroke-amber-500\/40 {
+           stroke: black !important;
+           opacity: 1 !important;
+        }
+        circle {
+           stroke: black !important;
+           fill: white !important;
+        }
+        text {
+           fill: black !important;
+           opacity: 1 !important;
+        }
+      }
+    </style>
+  <link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

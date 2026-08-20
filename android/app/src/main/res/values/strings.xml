@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Catharsis Matrix</string>
+    <string name="title_activity_main">Catharsis Matrix</string>
+    <string name="package_name">com.chubuk.catharsismatrix</string>
+    <string name="custom_url_scheme">com.chubuk.catharsismatrix</string>
+</resources>

@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Copy of Chubuk Matrix",
+  "description": "A professional spiritual portal calculating the Matrix of Destiny and Astrology charts with AI-powered mystical interpretations, optimized for Android PWA and mobile devices.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

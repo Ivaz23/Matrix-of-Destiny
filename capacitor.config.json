@@ -1,0 +1,11 @@
+{
+  "appId": "com.chubuk.catharsismatrix",
+  "appName": "Catharsis Matrix",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "backgroundColor": "#050a14",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}

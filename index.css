@@ -1,0 +1,33 @@
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    @apply bg-black text-slate-100;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: contain;
+    user-select: manipulation;
+  }
+}
+
+@layer components {
+  .will-change-transform {
+    will-change: transform;
+  }
+  
+  .content-visibility-auto {
+    content-visibility: auto;
+  }
+
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom, 8px);
+  }
+
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
