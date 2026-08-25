@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import html2canvas from 'html2canvas';
+import { savePdfDocument, saveAudioBlob } from './fileSaver';
 import { 
   SavedCalculation, 
   AnalysisResult, 
@@ -759,7 +760,8 @@ export const exportStylizedMatrixPdf = async ({
       heightLeft -= pdfHeight;
     }
 
-    pdf.save(`${filename}.pdf`);
+    const safeFileName = filename || `Матрица_Судьбы_${userInput?.name?.replace(/\s+/g, '_') || 'анализ'}`;
+    await savePdfDocument(pdf, safeFileName, 'Сакральный Манускрипт Матрицы Судьбы');
   } catch (error) {
     console.error('Error generating PDF:', error);
     throw error;
@@ -1088,7 +1090,7 @@ export const exportDailyForecastPdf = async ({
     }
 
     const safeFileName = filename || `Сакральный_Прогноз_${userName}_${forecast.targetDate || 'сегодня'}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Ежедневный Сакральный Прогноз');
   } catch (error) {
     console.error('Error generating Daily Forecast PDF:', error);
     throw error;
@@ -1251,7 +1253,7 @@ export const exportAstrologyPdf = async ({
     }
 
     const safeFileName = filename || `Астрологический_Манускрипт_${userName}_${astroData.zodiacSign}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Астрологический Манускрипт');
   } catch (error) {
     console.error('Error generating Astrology PDF:', error);
     throw error;
@@ -1441,7 +1443,7 @@ export const exportCompatibilityPdf = async ({
     }
 
     const safeFileName = filename || `Манускрипт_Совместимости_${user1.name}_и_${partner.name}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Манускрипт Совместимости');
   } catch (error) {
     console.error('Error generating Compatibility PDF:', error);
     throw error;
@@ -1587,7 +1589,7 @@ export const exportTarotPdf = async ({
     }
 
     const safeFileName = filename || `Расклад_Таро_${userName}_${new Date().toISOString().split('T')[0]}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Сакральный Расклад Таро');
   } catch (error) {
     console.error('Error generating Tarot PDF:', error);
     throw error;
@@ -1752,7 +1754,7 @@ export const exportHoraryPdf = async ({
     }
 
     const safeFileName = filename || `Ответ_Судьбы_${userName}_${new Date().toISOString().split('T')[0]}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Ответ Судьбы (Хорар)');
   } catch (error) {
     console.error('Error generating Horary PDF:', error);
     throw error;
@@ -1763,7 +1765,7 @@ export const exportHoraryPdf = async ({
   }
 };
 
-export const exportCalculationsToPdf = (calculations: SavedCalculation[]) => {
+export const exportCalculationsToPdf = async (calculations: SavedCalculation[]) => {
   const doc = new jsPDF();
   let y = 10;
 
@@ -1885,7 +1887,7 @@ export const exportCalculationsToPdf = (calculations: SavedCalculation[]) => {
     }
   });
 
-  doc.save(`chubuk_history_${new Date().toISOString().split('T')[0]}.pdf`);
+  await savePdfDocument(doc, `chubuk_history_${new Date().toISOString().split('T')[0]}.pdf`, 'История Расчетов Chubuk');
 };
 
 export const exportIdealToxicRadarPdf = async ({
@@ -2056,7 +2058,7 @@ export const exportIdealToxicRadarPdf = async ({
     }
 
     const safeFileName = filename || `Кармический_Радар_Партнеров_${userName}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Кармический Радар Партнеров');
   } catch (error) {
     console.error('Error generating Radar PDF:', error);
     throw error;
@@ -2096,7 +2098,7 @@ export const exportCurrentAnalysisToPdf = async (
     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
     
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`${file}.pdf`);
+    await savePdfDocument(pdf, `${file}.pdf`, 'Сакральный Анализ');
   } else {
     const userInput = elementIdOrInput;
     const matrix = matrixOrFilename;
@@ -2244,7 +2246,7 @@ export const exportAncestralLineagePdf = async ({
     }
 
     const safeFileName = filename || `Родовые_Программы_${userName}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Родовые Программы и Древо');
   } catch (error) {
     console.error('Error generating Ancestral PDF:', error);
     throw error;
@@ -2368,7 +2370,7 @@ export const exportLithotherapyPdf = async ({
     }
 
     const safeFileName = filename || `Литотерапия_Талисманы_${userName}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Сакральные Камни и Литотерапия');
   } catch (error) {
     console.error('Error generating Lithotherapy PDF:', error);
     throw error;
@@ -2500,7 +2502,7 @@ export const exportLunarCalendarPdf = async ({
     }
 
     const safeFileName = filename || `Лунный_Календарь_${lunarInfo.lunarDay}_день`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Лунный Календарь');
   } catch (error) {
     console.error('Error generating Lunar PDF:', error);
     throw error;
@@ -2609,7 +2611,7 @@ export const exportElectiveDatesPdf = async ({
     }
 
     const safeFileName = filename || `Благоприятные_Даты_${userName}_${category}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Элективный Подбор Золотых Дат');
   } catch (error) {
     console.error('Error generating Elective PDF:', error);
     throw error;
@@ -2725,7 +2727,7 @@ export const exportCitiesOfPowerPdf = async ({
     }
 
     const safeFileName = filename || `Город_Силы_${profile.cityName}_${userName}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Города Силы и Астрокартография');
   } catch (error) {
     console.error('Error generating City PDF:', error);
     throw error;
@@ -2867,7 +2869,7 @@ export const exportDreamOraclePdf = async ({
     }
 
     const safeFileName = filename || `Толкование_Сна_${userName}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Оракул Сновидений');
   } catch (error) {
     console.error('Error generating Dream PDF:', error);
     throw error;
@@ -3019,7 +3021,7 @@ export const exportAkashicKarmaPdf = async ({
     }
 
     const safeFileName = filename || `Хроники_Акаши_Расторжение_Клятв_${userName}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Хроники Акаши и Клятвы');
   } catch (error) {
     console.error('Error generating Akashic Karma PDF:', error);
     throw error;
@@ -3162,7 +3164,7 @@ export const exportChakrasPdf = async ({
     }
 
     const safeFileName = filename || `Карта_Чакр_Психосоматика_${userName}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Психосоматика и Карта 7 Чакр');
   } catch (error) {
     console.error('Error generating Chakras PDF:', error);
     throw error;
@@ -3302,7 +3304,7 @@ export const exportPowerCalendarPdf = async ({
     }
 
     const safeFileName = filename || `Календарь_Силы_${monthName}_${year}_${userName}`;
-    pdf.save(`${safeFileName}.pdf`);
+    await savePdfDocument(pdf, safeFileName, 'Календарь Силы 365');
   } catch (error) {
     console.error('Error generating Power Calendar PDF:', error);
     throw error;
@@ -3343,7 +3345,7 @@ const pcmToWav = (pcmData: Uint8Array, sampleRate: number = 24000): Blob => {
   return new Blob([wavData], { type: 'audio/wav' });
 };
 
-export const downloadAudioForCalculation = async (text: string, filename: string) => {
+export const downloadAudioForCalculation = async (text: string, filename: string, title?: string) => {
   try {
     const base64Audio = await getSpeech(text);
     const binaryString = atob(base64Audio);
@@ -3354,14 +3356,11 @@ export const downloadAudioForCalculation = async (text: string, filename: string
     }
     
     const blob = pcmToWav(bytes, 24000);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${filename}.wav`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const safeFilename = filename.toLowerCase().endsWith('.wav') ? filename : `${filename}.wav`;
+    return await saveAudioBlob(blob, safeFilename, title || filename);
   } catch (e) {
-    console.error("Download error:", e);
+    console.error("Download audio error:", e);
+    throw e;
   }
 };
 

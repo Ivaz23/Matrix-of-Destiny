@@ -1,4 +1,5 @@
 import html2canvas from 'html2canvas';
+import { saveImageDataUrl } from './fileSaver';
 
 export const exportWallpaperImage = async (
   elementId: string,
@@ -19,14 +20,11 @@ export const exportWallpaperImage = async (
       logging: false,
     });
 
-    const link = document.createElement('a');
-    link.download = `${filename}.png`;
-    link.href = canvas.toDataURL('image/png', 1.0);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const dataUrl = canvas.toDataURL('image/png', 1.0);
+    await saveImageDataUrl(dataUrl, filename, 'Сакральные обои-талисман');
   } catch (error) {
     console.error('Failed to export wallpaper:', error);
     throw error;
   }
 };
+
