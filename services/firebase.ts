@@ -11,12 +11,31 @@ import {
   updateProfile,
   signOut 
 } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDocFromServer } from 'firebase/firestore';
+import { 
+  initializeFirestore, 
+  persistentLocalCache, 
+  persistentMultipleTabManager, 
+  doc, 
+  setDoc, 
+  getDoc 
+} from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
+// Initialize Firestore with robust multi-tab local caching and auto-detected long polling
+export const db = initializeFirestore(
+  app,
+  {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager()
+    }),
+    experimentalAutoDetectLongPolling: true
+  },
+  firebaseConfig.firestoreDatabaseId
+);
+
 export const googleProvider = new GoogleAuthProvider();
 
 export enum OperationType {
@@ -106,17 +125,15 @@ export function formatAuthError(error: any): string {
   return msg.replace('Firebase: ', '');
 }
 
-// Connection validation
+// Safe connection validation
 export async function testConnection() {
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
+    await getDoc(doc(db, 'test', 'connection'));
   } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn("Firebase is operating in offline mode.");
-    }
+    // Gracefully handle offline or network delay
+    console.debug("Firestore offline or local-cache active:", error);
   }
 }
-testConnection();
 
 export const signInWithGoogle = async () => {
   try {
