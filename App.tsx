@@ -30,6 +30,7 @@ import { AppHeader } from './components/AppHeader';
 import { AppCategoryRibbon } from './components/AppCategoryRibbon';
 import { AndroidBottomBar } from './components/AndroidBottomBar';
 import { AndroidInstallModal } from './components/AndroidInstallModal';
+import { AuthModal } from './components/AuthModal';
 import { AppSidebarNavigation, AppNavTabId } from './components/AppSidebarNavigation';
 import { useAndroidInstall } from './hooks/useAndroidInstall';
 
@@ -80,6 +81,7 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppNavTabId>('matrix');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAndroidModalOpen, setIsAndroidModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isVoiceChatOpen, setIsVoiceChatOpen] = useState(false);
   const [localCalculations, setLocalCalculations] = useState<SavedCalculation[]>([]);
   
@@ -305,7 +307,7 @@ export const App: React.FC = () => {
           onOpenSidebar={() => setIsMenuOpen(true)}
           onOpenAndroidModal={() => setIsAndroidModalOpen(true)}
           user={user}
-          onSignIn={signIn}
+          onSignIn={() => setIsAuthModalOpen(true)}
           onSignOut={signOut}
           userInput={userInput}
           matrix={matrix}
@@ -597,6 +599,12 @@ export const App: React.FC = () => {
           isAndroid={isAndroid}
           onTriggerInstall={triggerInstall}
           onTriggerHaptic={triggerHaptic}
+        />
+
+        {/* User Authentication & Account Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
         />
       </div>
     </AudioProvider>

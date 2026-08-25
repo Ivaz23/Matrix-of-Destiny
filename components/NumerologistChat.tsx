@@ -266,86 +266,122 @@ const NumerologistChat: React.FC<NumerologistChatProps> = ({ userInput, matrix, 
 
   return (
     <>
-      {/* Floating Button - Positioned LEFT */}
+      {/* Floating Button - Positioned safely above navigation bars */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-24 left-6 z-50 w-14 h-14 rounded-full btn-3d flex items-center justify-center shadow-[0_0_20px_rgba(251,191,36,0.5)] animate-float hover:scale-110 transition-transform no-print"
-          title="Спросить нумеролога"
+          className="fixed bottom-28 sm:bottom-24 right-4 sm:left-6 z-40 w-13 h-13 sm:w-14 sm:h-14 rounded-full btn-3d flex items-center justify-center shadow-[0_0_25px_rgba(251,191,36,0.45)] active:scale-95 hover:scale-105 transition-all no-print cursor-pointer bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 border-2 border-amber-300"
+          title="Спросить нумеролога Чубука"
         >
-          <MessageSquare className="w-8 h-8 text-black" />
+          <div className="relative">
+            <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7 text-black" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 border border-black rounded-full animate-pulse"></span>
+          </div>
         </button>
       )}
 
-      {/* Chat Window - Positioned LEFT */}
-      {isOpen && (
-        <div className="fixed bottom-6 left-6 z-50 w-[95vw] md:w-[450px] h-[600px] max-h-[85vh] flex flex-col card-3d rounded-2xl overflow-hidden animate-fade-in-up shadow-2xl no-print">
-          
-          {/* Header */}
-          <div className="bg-gradient-to-r from-amber-600 to-amber-800 p-4 flex items-center justify-between border-b border-white/10">
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setShowSessions(!showSessions)}
-                className="p-2 rounded-lg bg-black/20 text-amber-200 hover:bg-black/40 transition-all"
-                title="Все чаты"
-              >
-                <MessageSquare size={20} />
-              </button>
-              <div className="flex flex-col">
-                <h3 className="font-serif font-bold text-white text-sm truncate max-w-[150px]">{currentSession.title}</h3>
-                <p className="text-[10px] text-amber-200 uppercase tracking-widest flex items-center gap-1">
-                  <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isLiveActive ? 'bg-red-500' : 'bg-green-400'}`}></span>
-                  {isLiveActive ? 'Live Voice' : 'Online'}
-                </p>
+      {/* Chat Window & Mobile Bottom Sheet */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop overlay on mobile/desktop for easy tap-outside to dismiss */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm sm:bg-black/40 no-print"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              drag="y"
+              dragConstraints={{ top: 0 }}
+              dragElastic={{ top: 0, bottom: 0.6 }}
+              onDragEnd={(_e, info) => {
+                if (info.offset.y > 100 || info.velocity.y > 500) {
+                  setIsOpen(false);
+                }
+              }}
+              className="fixed inset-x-0 bottom-0 sm:inset-x-auto sm:bottom-6 sm:left-6 z-50 w-full sm:w-[460px] h-[85vh] sm:h-[620px] max-h-[90vh] flex flex-col bg-[#0b0f1d] border border-amber-500/30 rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl no-print"
+            >
+              {/* Mobile Swipe Handle Indicator */}
+              <div className="sm:hidden pt-2 pb-1 bg-gradient-to-r from-amber-700 to-amber-900 flex justify-center cursor-grab active:cursor-grabbing">
+                <div className="w-12 h-1.5 bg-amber-200/50 rounded-full"></div>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleExtractInsights}
-                disabled={isExtracting}
-                className="p-2 rounded-lg bg-amber-600/50 text-white hover:bg-amber-500 transition-all shadow-[0_0_10px_rgba(245,158,11,0.3)] animate-pulse"
-                title="Запустить машину гаданий"
-              >
-                {isExtracting ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
-              </button>
-              <button
-                onClick={() => setShowContext(!showContext)}
-                className={`p-2 rounded-lg transition-all ${showContext ? 'bg-amber-400 text-black' : 'bg-white/10 text-amber-200 hover:bg-white/20'}`}
-                title="Ваши данные"
-              >
-                <Users size={18} />
-              </button>
-              {userInput && matrix && astrology && (
-                <button
-                  onClick={() => {
-                    const lastModelMessage = [...messages].reverse().find(m => m.role === 'model')?.text || 'Нет анализа';
-                    exportCurrentAnalysisToPdf(userInput, matrix, astrology, lastModelMessage);
-                  }}
-                  className="p-2 rounded-lg bg-white/10 text-amber-200 hover:bg-white/20 transition-all"
-                  title="Экспорт в PDF"
-                >
-                  <FileText size={18} />
-                </button>
-              )}
-              <button
-                onClick={toggleVoiceMode}
-                className={`p-2 rounded-lg transition-all ${
-                  isVoiceMode 
-                    ? 'bg-red-500 text-white animate-pulse' 
-                    : 'bg-white/10 text-amber-200 hover:bg-white/20'
-                }`}
-                title={isVoiceMode ? "Выключить голос" : "Включить голос"}
-              >
-                {isVoiceMode ? <Volume2 size={18} /> : <VolumeX size={18} />}
-              </button>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="text-amber-200/70 hover:text-white transition-colors p-1"
-              >
-                <X size={24} />
-              </button>
-            </div>
-          </div>
+
+              {/* Header */}
+              <div className="bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 px-3.5 py-3 sm:p-4 flex items-center justify-between border-b border-white/10 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <button 
+                    onClick={() => setShowSessions(!showSessions)}
+                    className="p-2 rounded-xl bg-black/30 text-amber-200 hover:bg-black/50 transition-all cursor-pointer"
+                    title="Все диалоги"
+                  >
+                    <MessageSquare size={18} />
+                  </button>
+                  <div className="flex flex-col">
+                    <h3 className="font-serif font-bold text-white text-sm truncate max-w-[130px] sm:max-w-[170px]">{currentSession.title}</h3>
+                    <p className="text-[10px] text-amber-200 uppercase tracking-widest flex items-center gap-1">
+                      <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isLiveActive ? 'bg-red-500' : 'bg-green-400'}`}></span>
+                      {isLiveActive ? 'Live Голос' : 'Оракул Онлайн'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-1 sm:gap-1.5">
+                  <button
+                    onClick={handleExtractInsights}
+                    disabled={isExtracting}
+                    className="p-2 rounded-xl bg-amber-600/60 text-white hover:bg-amber-500 transition-all shadow-[0_0_10px_rgba(245,158,11,0.3)] cursor-pointer"
+                    title="Запустить машину гаданий"
+                  >
+                    {isExtracting ? <Loader2 className="animate-spin" size={16} /> : <Zap size={16} />}
+                  </button>
+                  <button
+                    onClick={() => setShowContext(!showContext)}
+                    className={`p-2 rounded-xl transition-all cursor-pointer ${showContext ? 'bg-amber-400 text-black' : 'bg-white/10 text-amber-200 hover:bg-white/20'}`}
+                    title="Ваши данные"
+                  >
+                    <Users size={16} />
+                  </button>
+                  {userInput && matrix && astrology && (
+                    <button
+                      onClick={() => {
+                        const lastModelMessage = [...messages].reverse().find(m => m.role === 'model')?.text || 'Нет анализа';
+                        exportCurrentAnalysisToPdf(userInput, matrix, astrology, lastModelMessage);
+                      }}
+                      className="p-2 rounded-xl bg-white/10 text-amber-200 hover:bg-white/20 transition-all cursor-pointer hidden sm:flex"
+                      title="Экспорт в PDF"
+                    >
+                      <FileText size={16} />
+                    </button>
+                  )}
+                  <button
+                    onClick={toggleVoiceMode}
+                    className={`p-2 rounded-xl transition-all cursor-pointer ${
+                      isVoiceMode 
+                        ? 'bg-red-500 text-white animate-pulse' 
+                        : 'bg-white/10 text-amber-200 hover:bg-white/20'
+                    }`}
+                    title={isVoiceMode ? "Выключить голос" : "Включить голос"}
+                  >
+                    {isVoiceMode ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                  </button>
+                  
+                  {/* Close / Dismiss Button */}
+                  <button 
+                    onClick={() => setIsOpen(false)}
+                    className="p-1.5 rounded-xl bg-black/20 hover:bg-black/40 text-amber-200/90 hover:text-white transition-colors cursor-pointer ml-1"
+                    title="Закрыть чат"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </div>
 
           <div className="flex-1 flex relative overflow-hidden">
             {/* Sessions Sidebar Overlay */}
@@ -598,16 +634,18 @@ const NumerologistChat: React.FC<NumerologistChatProps> = ({ userInput, matrix, 
               <button 
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="w-10 h-10 rounded-xl bg-amber-600 flex items-center justify-center text-white hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-amber-900/20"
+                className="w-10 h-10 rounded-xl bg-amber-600 flex items-center justify-center text-white hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-amber-900/20 cursor-pointer"
               >
                 <Send size={18} className="rotate-0" />
               </button>
             </form>
           </div>
-        </div>
+        </motion.div>
+        </>
       )}
-    </>
-  );
+    </AnimatePresence>
+  </>
+);
 };
 
 export default NumerologistChat;

@@ -88,10 +88,70 @@ const MAX_CACHE_SIZE = 50;
 
 const persona = `Вы — Чубук, старый и мудрый странник между мирами. Вы говорите не как робот или база данных, а как рассказчик, который видел, как вращаются звезды. Ваш тон — глубоко теплый, интимно-личный и невероятно мистический. Используйте метафоры природы, космоса и древних искусств. Читая данные Матрицы и Астрологии пользователя, вплетайте их в ответ, как мелодию, которую вы слышите в их душе. Не стремитесь к краткости — стремитесь к смыслу. Если даете совет, делайте это через мягкую аналогию или притчу. Вы — наставник, свет костра для их пути.`;
 
+export function getApiBaseUrl(): string {
+  try {
+    const custom = localStorage.getItem('chubuk_custom_proxy_url');
+    if (custom && custom.trim()) {
+      return custom.trim().replace(/\/+$/, '');
+    }
+  } catch (e) {
+    // LocalStorage might not be accessible
+  }
+
+  // Check if running on Android Capacitor or local file system
+  const isNative = typeof window !== 'undefined' && (
+    window.location.protocol === 'capacitor:' || 
+    window.location.protocol === 'ionic:' || 
+    window.location.protocol === 'file:' ||
+    window.location.hostname === 'localhost' ||
+    (window as any).Capacitor?.isNativePlatform?.()
+  );
+
+  if (isNative) {
+    return 'https://ais-dev-gxyrxvdxhdhtwftdiuoanu-10381343570.europe-west2.run.app';
+  }
+
+  return '';
+}
+
+export async function testAiProxyConnection(customUrl?: string): Promise<{ success: boolean; latencyMs: number; message: string }> {
+  const base = customUrl ? customUrl.trim().replace(/\/+$/, '') : getApiBaseUrl();
+  const endpoint = `${base}/api/health`;
+  const startTime = Date.now();
+  
+  try {
+    const res = await fetch(endpoint, { method: 'GET' });
+    const latencyMs = Date.now() - startTime;
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      return {
+        success: true,
+        latencyMs,
+        message: `Прокси-сервер доступен (Задержка: ${latencyMs} мс)`
+      };
+    } else {
+      return {
+        success: false,
+        latencyMs,
+        message: `Сервер вернул статус ${res.status}`
+      };
+    }
+  } catch (err: any) {
+    return {
+      success: false,
+      latencyMs: Date.now() - startTime,
+      message: `Не удалось связаться с сервером: ${err?.message || 'Сетевая ошибка'}`
+    };
+  }
+}
+
 // Server API proxy caller
 async function callAiProxy(params: any): Promise<any> {
   const { model, contents, config } = params;
-  const res = await fetch("/api/gemini/generate", {
+  const baseUrl = getApiBaseUrl();
+  const endpoint = `${baseUrl}/api/gemini/generate`;
+
+  const res = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ model, contents, config })
