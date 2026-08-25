@@ -31,6 +31,7 @@ import { AppCategoryRibbon } from './components/AppCategoryRibbon';
 import { AndroidBottomBar } from './components/AndroidBottomBar';
 import { AndroidInstallModal } from './components/AndroidInstallModal';
 import { AuthModal } from './components/AuthModal';
+import { MatrixOnboardingGuide } from './components/MatrixOnboardingGuide';
 import { AppSidebarNavigation, AppNavTabId } from './components/AppSidebarNavigation';
 import { useAndroidInstall } from './hooks/useAndroidInstall';
 
@@ -82,6 +83,7 @@ export const App: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAndroidModalOpen, setIsAndroidModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isVoiceChatOpen, setIsVoiceChatOpen] = useState(false);
   const [localCalculations, setLocalCalculations] = useState<SavedCalculation[]>([]);
   
@@ -188,6 +190,18 @@ export const App: React.FC = () => {
       generateMysticalBackground(input.name).then(img => {
         if (img) setBgImage(img);
       });
+
+      // Launch onboarding guide for new users on their first calculation
+      try {
+        const hasCompletedOnboarding = localStorage.getItem('chubuk_matrix_onboarding_done');
+        if (!hasCompletedOnboarding) {
+          setTimeout(() => {
+            setIsOnboardingOpen(true);
+          }, 800);
+        }
+      } catch (e) {
+        // ignore
+      }
 
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 150);
     } catch (err) {
@@ -381,6 +395,18 @@ export const App: React.FC = () => {
                           <button
                             onClick={() => {
                               triggerHaptic(10);
+                              setIsOnboardingOpen(true);
+                            }}
+                            className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 text-xs font-serif font-bold flex items-center gap-1.5 cursor-pointer"
+                            title="Открыть обучение по значениям Матрицы"
+                          >
+                            <Compass size={13} />
+                            <span>Гид</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              triggerHaptic(10);
                               setActiveTab('wallpapers');
                             }}
                             className="px-3 py-1.5 rounded-xl bg-purple-950/40 border border-purple-500/40 text-purple-300 hover:bg-purple-900/50 text-xs font-serif font-bold flex items-center gap-1.5 cursor-pointer"
@@ -411,7 +437,11 @@ export const App: React.FC = () => {
                       
                       <div className="w-full flex items-center justify-center min-h-[380px] p-4 rounded-3xl bg-[#070b16]/70 border border-white/5 shadow-inner">
                         {matrix ? (
-                          <MatrixVisual matrix={matrix} userInput={userInput} />
+                          <MatrixVisual 
+                            matrix={matrix} 
+                            userInput={userInput} 
+                            onOpenGuide={() => setIsOnboardingOpen(true)}
+                          />
                         ) : (
                           <div className="flex flex-col items-center justify-center text-center p-8 opacity-40 space-y-2">
                             <Sparkles size={36} className="text-amber-400 animate-pulse" />
@@ -605,6 +635,14 @@ export const App: React.FC = () => {
         <AuthModal
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
+        />
+
+        {/* Matrix of Destiny Onboarding Guide Coach Marks */}
+        <MatrixOnboardingGuide
+          isOpen={isOnboardingOpen}
+          onClose={() => setIsOnboardingOpen(false)}
+          matrix={matrix}
+          userInput={userInput}
         />
       </div>
     </AudioProvider>

@@ -14,7 +14,18 @@ export default defineConfig(({ mode }) => {
         }
       },
       build: {
-        chunkSizeWarningLimit: 1000,
+        chunkSizeWarningLimit: 1500,
+        assetsInlineLimit: 4096,
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'vendor-react': ['react', 'react-dom'],
+              'vendor-motion': ['framer-motion'],
+              'vendor-icons': ['lucide-react'],
+              'vendor-pdf': ['jspdf', 'html2canvas']
+            }
+          }
+        }
       },
       plugins: [react()],
       define: {

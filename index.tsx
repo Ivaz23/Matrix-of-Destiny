@@ -9,9 +9,21 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       .register('/sw.js', { scope: '/' })
       .then((reg) => {
         console.log('Catharsis Matrix SW registered successfully:', reg.scope);
+
+        // Check for updates
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('Catharsis Matrix: New content available offline.');
+              }
+            });
+          }
+        });
       })
       .catch((err) => {
-        console.log('SW registration note:', err);
+        console.debug('SW registration note:', err);
       });
   });
 }

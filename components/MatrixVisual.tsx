@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Compass, Sparkles, HelpCircle } from 'lucide-react';
 import { MatrixNumbers, UserInput, EnergyDetails } from '../types';
 import { getEnergyAnalysis, getSpeech, decodeAudioData } from '../services/geminiService';
 
 interface MatrixVisualProps {
   matrix: MatrixNumbers;
   userInput: UserInput | null;
+  onOpenGuide?: () => void;
 }
 
 type MatrixPosition = 'day' | 'month' | 'year' | 'bottom' | 'center';
@@ -17,7 +19,7 @@ const POSITION_TITLES: Record<MatrixPosition, string> = {
   center: "Зона Комфорта (Душа)"
 };
 
-const MatrixVisual: React.FC<MatrixVisualProps> = ({ matrix, userInput }) => {
+const MatrixVisual: React.FC<MatrixVisualProps> = ({ matrix, userInput, onOpenGuide }) => {
   const [activePoint, setActivePoint] = useState<{ id: MatrixPosition; value: number } | null>(null);
   const [animatingId, setAnimatingId] = useState<MatrixPosition | null>(null); // For 3D Pop animation
   const [details, setDetails] = useState<EnergyDetails | null>(null);
@@ -253,6 +255,20 @@ const MatrixVisual: React.FC<MatrixVisualProps> = ({ matrix, userInput }) => {
 
         </svg>
       </div>
+
+      {/* Onboarding Guide Trigger Banner */}
+      {onOpenGuide && (
+        <div className="mt-2 flex items-center justify-center no-print">
+          <button
+            onClick={onOpenGuide}
+            className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 hover:from-amber-500/25 hover:to-amber-500/25 border border-amber-500/30 hover:border-amber-400/50 text-amber-300 text-xs font-serif font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer group"
+            title="Открыть пошаговое интерактивное руководство по Матрице"
+          >
+            <Compass size={14} className="text-amber-400 group-hover:rotate-45 transition-transform" />
+            <span>Как читать значения Матрицы?</span>
+          </button>
+        </div>
+      )}
       
       {/* Expanded Info Modal - Glassmorphism Style */}
       {activePoint && (
