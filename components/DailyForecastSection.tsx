@@ -48,17 +48,21 @@ import {
   Coins,
   Wallet,
   Pill,
-  Scale
+  Scale,
+  Bell,
+  BellRing
 } from 'lucide-react';
 
 interface DailyForecastSectionProps {
   initialUserInput?: UserInput | null;
   onSaveBirthDate?: (input: UserInput) => void;
+  onOpenNotifications?: () => void;
 }
 
 const DailyForecastSection: React.FC<DailyForecastSectionProps> = ({ 
   initialUserInput, 
-  onSaveBirthDate 
+  onSaveBirthDate,
+  onOpenNotifications
 }) => {
   const getStoredInput = () => {
     try {
@@ -498,6 +502,18 @@ const DailyForecastSection: React.FC<DailyForecastSectionProps> = ({
               <span>Аркан Личности:</span>
               <span className="font-bold text-amber-200">{matrix.day}</span>
             </div>
+
+            {onOpenNotifications && (
+              <button
+                type="button"
+                onClick={onOpenNotifications}
+                className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-xs font-bold transition-all shadow-sm cursor-pointer"
+                title="Настроить Push-напоминание о прогнозе каждое утро"
+              >
+                <Bell size={13} className="text-amber-400" />
+                <span>🔔 Напоминать о прогнозе каждое утро</span>
+              </button>
+            )}
           </div>
         )}
       </div>

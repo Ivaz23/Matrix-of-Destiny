@@ -565,6 +565,11 @@ export const getDailyCipher = (dateStr: string = getTodayDateString()): {
 };
 
 // Initial default state
+// Energy regeneration configuration: 100 energy per 10 minutes (600 seconds = 1 energy every 6 seconds)
+export const ENERGY_REGEN_PER_SECOND = 100 / 600; // ~0.16667 energy per sec
+export const ENERGY_REGEN_INTERVAL_MINUTES = 10;
+export const ENERGY_REGEN_AMOUNT_PER_INTERVAL = 100;
+
 export const DEFAULT_GAME_STATE: TapperGameState = {
   coins: 100,
   totalEarned: 100,
@@ -626,9 +631,9 @@ export const loadGameState = (): { state: TapperGameState; offlineEarnings: numb
       }
     }
 
-    // Energy regeneration: 3 energy points per second
+    // Energy regeneration: exactly 100 energy per 10 minutes (1 energy every 6 seconds)
     const elapsedSinceLast = Math.max(0, Math.floor((now - (state.lastEarnTimestamp || now)) / 1000));
-    const regeneratedEnergy = elapsedSinceLast * 3;
+    const regeneratedEnergy = elapsedSinceLast * ENERGY_REGEN_PER_SECOND;
     state.energy = Math.min(state.maxEnergy, state.energy + regeneratedEnergy);
 
     // Recalculate level

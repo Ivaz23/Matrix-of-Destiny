@@ -30,7 +30,9 @@ import {
   Check,
   ToggleLeft,
   ToggleRight,
-  Database
+  Database,
+  Bell,
+  BellRing
 } from 'lucide-react';
 import { SavedCalculation, UserInput } from '../types';
 import { exportCalculationsToPdf, downloadAudioForCalculation } from '../services/exportUtils';
@@ -47,6 +49,7 @@ interface ProfileSectionProps {
   onDeleteCalculation: (id: string) => void;
   onClearProfile: () => void;
   onHistoryMerged?: (mergedCount: number) => void;
+  onOpenNotifications?: () => void;
 }
 
 export const ProfileSection: React.FC<ProfileSectionProps> = ({
@@ -55,7 +58,8 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   onSelectCalculation,
   onDeleteCalculation,
   onClearProfile,
-  onHistoryMerged
+  onHistoryMerged,
+  onOpenNotifications
 }) => {
   const { user, signOut } = useAuth();
   const { loadingId, setLoadingId } = useGlobalAudio();
@@ -442,6 +446,32 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <p className="text-[11px] text-slate-500">Рассчитайте свою матрицу на главной странице.</p>
               </div>
             )}
+          </div>
+
+          {/* Push Notifications & Reminders Panel */}
+          <div className="bg-[#0b1020]/90 backdrop-blur-xl border border-amber-500/30 rounded-3xl p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-serif text-white flex items-center gap-2">
+                <BellRing size={16} className="text-amber-400" />
+                Push-Уведомления
+              </h3>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
+                PWA / Web
+              </span>
+            </div>
+
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              Напоминания о ежедневных прогнозах, лунных фазах, смене биоритмов и благоприятных датах для сделок и свадеб.
+            </p>
+
+            <button
+              type="button"
+              onClick={onOpenNotifications}
+              className="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-amber-600/30 text-amber-200 border border-amber-500/40 text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+            >
+              <Bell size={14} className="text-amber-400" />
+              <span>Настроить каналы и время</span>
+            </button>
           </div>
 
           {/* AI Connection & Proxy Panel */}

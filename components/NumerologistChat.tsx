@@ -241,27 +241,58 @@ const NumerologistChat: React.FC<NumerologistChatProps> = ({ userInput, matrix, 
     scrollToBottom();
   }, [messages, isOpen]);
 
+  const sendDirectMessage = async (userMsg: string) => {
+    if (!userMsg.trim() || isLoading) return;
+
+    // Get current messages
+    const activeSession = sessions.find(s => s.id === currentSessionId) || sessions[0];
+    const currentMsgs = activeSession ? activeSession.messages : messages;
+
+    // Add user message
+    const newHistory = [...currentMsgs, { role: 'user', text: userMsg } as Message];
+    updateMessages(newHistory);
+    setIsLoading(true);
+
+    try {
+      const response = await chatWithChubuk(userMsg, newHistory, { userInput, matrix, astrology });
+      setSessions(prev => prev.map(s => 
+        s.id === currentSessionId ? { ...s, messages: [...newHistory, { role: 'model', text: response }] } : s
+      ));
+    } catch (error) {
+      console.error(error);
+      setSessions(prev => prev.map(s => 
+        s.id === currentSessionId ? { ...s, messages: [...newHistory, { role: 'model', text: 'Прошу прощения, связь с эгрегором прервалась. Попробуйте еще раз.' }] } : s
+      ));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleAskNumerologist = (e: Event) => {
+      const customEvent = e as CustomEvent<{ question?: string }>;
+      const question = customEvent.detail?.question || 'Что означает мой аркан дня для моих текущих дел?';
+      setIsOpen(true);
+      if (question.trim()) {
+        setTimeout(() => {
+          sendDirectMessage(question.trim());
+        }, 150);
+      }
+    };
+
+    window.addEventListener('chubuk:ask-numerologist', handleAskNumerologist);
+    return () => {
+      window.removeEventListener('chubuk:ask-numerologist', handleAskNumerologist);
+    };
+  }, [sessions, currentSessionId, userInput, matrix, astrology, isLoading]);
+
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!input.trim() || isLoading) return;
 
     const userMsg = input.trim();
     setInput('');
-    
-    // Add user message
-    const newHistory = [...messages, { role: 'user', text: userMsg } as Message];
-    updateMessages(newHistory);
-    setIsLoading(true);
-
-    try {
-      const response = await chatWithChubuk(userMsg, newHistory, { userInput, matrix, astrology });
-      updateMessages([...newHistory, { role: 'model', text: response }]);
-    } catch (error) {
-      console.error(error);
-      updateMessages([...newHistory, { role: 'model', text: 'Прошу прощения, связь с эгрегором прервалась. Попробуйте еще раз.' }]);
-    } finally {
-      setIsLoading(false);
-    }
+    await sendDirectMessage(userMsg);
   };
 
   return (

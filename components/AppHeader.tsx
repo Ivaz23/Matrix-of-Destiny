@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   Search,
   Radio,
-  Sliders
+  Sliders,
+  Bell
 } from 'lucide-react';
 import { AppNavTabId } from './AppSidebarNavigation';
 import { UserInput, MatrixNumbers } from '../types';
@@ -23,6 +24,7 @@ interface AppHeaderProps {
   onOpenSidebar: () => void;
   onOpenAndroidModal: () => void;
   onOpenVoiceChat?: () => void;
+  onOpenNotifications?: () => void;
   user: any;
   onSignIn: () => void;
   onSignOut: () => void;
@@ -58,6 +60,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenSidebar,
   onOpenAndroidModal,
   onOpenVoiceChat,
+  onOpenNotifications,
   user,
   onSignIn,
   onSignOut,
@@ -66,6 +69,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onTriggerHaptic
 }) => {
   const [currentTime, setCurrentTime] = useState('');
+  const [notificationsActive, setNotificationsActive] = useState(false);
   const currentTabInfo = TAB_TITLES[activeTab] || TAB_TITLES.matrix;
 
   useEffect(() => {
@@ -75,7 +79,23 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     };
     updateTime();
     const interval = setInterval(updateTime, 30000);
-    return () => clearInterval(interval);
+
+    const checkNotifStatus = () => {
+      try {
+        const raw = localStorage.getItem('chubuk_push_notification_settings');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setNotificationsActive(Boolean(parsed.enabled));
+        }
+      } catch {}
+    };
+    checkNotifStatus();
+    window.addEventListener('chubuk_notifications_updated', checkNotifStatus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('chubuk_notifications_updated', checkNotifStatus);
+    };
   }, []);
 
   return (
@@ -136,6 +156,27 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <span className="font-mono text-amber-400 font-bold bg-black/40 px-1.5 py-0.2 rounded text-[10px]">
                 {matrix.center} Аркан
               </span>
+            </button>
+          )}
+
+          {/* Push Notifications Button */}
+          {onOpenNotifications && (
+            <button
+              onClick={() => {
+                onTriggerHaptic?.(10);
+                onOpenNotifications();
+              }}
+              className={`relative p-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                notificationsActive
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25'
+                  : 'bg-white/5 border-white/10 text-slate-400 hover:text-slate-200 hover:bg-white/10'
+              }`}
+              title="Настройка Push-уведомлений и напоминаний о прогнозах"
+            >
+              <Bell size={15} className={notificationsActive ? 'text-amber-400' : ''} />
+              {notificationsActive && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-[#050a14] animate-pulse" />
+              )}
             </button>
           )}
 

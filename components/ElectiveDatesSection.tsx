@@ -2,6 +2,13 @@ import React, { useState } from 'react';
 import { UserInput, BestDatesQueryResult } from '../types';
 import { findBestFavorableDates } from '../services/electiveUtils';
 import { exportElectiveDatesPdf } from '../services/exportUtils';
+import { addCustomReminder, requestNotificationPermission } from '../services/notificationService';
+import { 
+  generateGoogleCalendarUrl, 
+  generateSingleIcsContent, 
+  generateBulkIcsContent, 
+  downloadIcsFile 
+} from '../services/calendarExportUtils';
 import { 
   Calendar, 
   Heart, 
@@ -16,18 +23,27 @@ import {
   ChevronRight,
   ShieldCheck,
   FileDown,
-  Loader2
+  Loader2,
+  Bell,
+  BellRing,
+  Check,
+  CalendarPlus,
+  Download,
+  ExternalLink
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ElectiveDatesSectionProps {
   userInput?: UserInput | null;
+  onOpenNotifications?: () => void;
 }
 
-export const ElectiveDatesSection: React.FC<ElectiveDatesSectionProps> = ({ userInput }) => {
+export const ElectiveDatesSection: React.FC<ElectiveDatesSectionProps> = ({ userInput, onOpenNotifications }) => {
   const [selectedCategory, setSelectedCategory] = useState<BestDatesQueryResult['goalCategory']>('wedding');
   const [daysRange, setDaysRange] = useState<number>(45);
   const [isExporting, setIsExporting] = useState(false);
+  const [scheduledDates, setScheduledDates] = useState<Record<string, boolean>>({});
+  const [toastText, setToastText] = useState<string | null>(null);
 
   const result = findBestFavorableDates(selectedCategory, userInput, daysRange);
 
@@ -44,6 +60,51 @@ export const ElectiveDatesSection: React.FC<ElectiveDatesSectionProps> = ({ user
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const handleExportBulkIcs = () => {
+    const icsContent = generateBulkIcsContent(result, userInput?.name);
+    downloadIcsFile(`chubuk_favorable_dates_${selectedCategory}.ics`, icsContent);
+    setToastText(`📅 Файл .ics со всеми ТОП-датами успешно сформирован и скачан!`);
+    setTimeout(() => setToastText(null), 4000);
+  };
+
+  const handleAddToGoogleCalendar = (item: BestDatesQueryResult['topDates'][0]) => {
+    const url = generateGoogleCalendarUrl(item, result.goalTitle, userInput?.name);
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setToastText(`✨ Открыт Google Календарь для даты ${item.formattedDate}`);
+    setTimeout(() => setToastText(null), 3500);
+  };
+
+  const handleDownloadSingleIcs = (item: BestDatesQueryResult['topDates'][0]) => {
+    const icsContent = generateSingleIcsContent(item, result.goalTitle, userInput?.name);
+    downloadIcsFile(`chubuk_date_${item.date}_${selectedCategory}.ics`, icsContent);
+    setToastText(`📥 .ics файл для ${item.formattedDate} скачан!`);
+    setTimeout(() => setToastText(null), 3500);
+  };
+
+  const handleQuickSchedule = async (item: BestDatesQueryResult['topDates'][0]) => {
+    await requestNotificationPermission();
+    const categoryLabels: Record<string, string> = {
+      wedding: 'Свадьба и Союз',
+      business: 'Бизнес и Сделки',
+      property: 'Покупка Недвижимости/Авто',
+      travel: 'Путешествие и Переезд',
+      health_beauty: 'Здоровье и Красота',
+      spiritual: 'Духовная Практика'
+    };
+
+    addCustomReminder({
+      title: `${categoryLabels[selectedCategory] || 'Важное Дело'}: ${item.formattedDate}`,
+      targetDate: item.date,
+      targetTime: '08:30',
+      category: selectedCategory === 'wedding' ? 'wedding' : selectedCategory === 'business' ? 'business' : 'custom',
+      description: `Благоприятный день (рейтинг ${item.score}%). Золотой час: ${item.goldenHourTip}`
+    });
+
+    setScheduledDates(prev => ({ ...prev, [item.date]: true }));
+    setToastText(`🔔 Напоминание установлено на ${item.formattedDate} в 08:30!`);
+    setTimeout(() => setToastText(null), 3500);
   };
 
   const categories = [
@@ -88,6 +149,27 @@ export const ElectiveDatesSection: React.FC<ElectiveDatesSectionProps> = ({ user
             ))}
           </div>
 
+          {onOpenNotifications && (
+            <button
+              onClick={onOpenNotifications}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-black/40 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold transition-all shadow-sm cursor-pointer"
+              title="Настройка автоматических Push-уведомлений о благоприятных днях"
+            >
+              <BellRing size={14} className="text-amber-400" />
+              <span>Push-напоминания</span>
+            </button>
+          )}
+
+          {/* Bulk ICS export */}
+          <button
+            onClick={handleExportBulkIcs}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-blue-500/20 to-indigo-500/20 hover:from-blue-500/30 hover:to-indigo-500/30 border border-blue-500/40 text-blue-200 text-xs font-bold transition-all shadow-md cursor-pointer"
+            title="Экспортировать все найденные ТОП-даты в один .ics файл для импорта в Apple/Google/Outlook календарь"
+          >
+            <CalendarPlus size={14} className="text-blue-300" />
+            <span>Календарь (.ics)</span>
+          </button>
+
           <button
             onClick={handleExportPdf}
             disabled={isExporting}
@@ -98,6 +180,19 @@ export const ElectiveDatesSection: React.FC<ElectiveDatesSectionProps> = ({ user
           </button>
         </div>
       </div>
+
+      {/* Floating Toast Notification */}
+      {toastText && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-950 via-[#0a1812] to-black border-2 border-emerald-500 text-emerald-200 text-xs font-bold shadow-2xl flex items-center gap-2.5 backdrop-blur-md"
+        >
+          <BellRing size={16} className="text-emerald-400 animate-bounce" />
+          <span>{toastText}</span>
+        </motion.div>
+      )}
 
       {/* Category Pills */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
@@ -206,6 +301,54 @@ export const ElectiveDatesSection: React.FC<ElectiveDatesSectionProps> = ({ user
                     <span className="font-light">{c}</span>
                   </div>
                 ))}
+              </div>
+
+              {/* Action Buttons: Calendar Exports & Push Notification */}
+              <div className="pt-2 border-t border-white/5 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleAddToGoogleCalendar(item)}
+                    className="py-1.5 px-2.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    title="Добавить это событие прямо в ваш Google Calendar"
+                  >
+                    <CalendarPlus size={13} className="text-blue-400" />
+                    <span>Google Calendar</span>
+                    <ExternalLink size={10} className="opacity-60" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadSingleIcs(item)}
+                    className="py-1.5 px-2.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    title="Скачать файл события .ics для Apple Calendar, Outlook и др."
+                  >
+                    <Download size={13} className="text-indigo-400" />
+                    <span>Скачать .ics</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleQuickSchedule(item)}
+                  className={`w-full py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    scheduledDates[item.date]
+                      ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                      : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-200'
+                  }`}
+                >
+                  {scheduledDates[item.date] ? (
+                    <>
+                      <Check size={14} className="text-emerald-400" />
+                      <span>Напоминание включено</span>
+                    </>
+                  ) : (
+                    <>
+                      <Bell size={14} className="text-amber-400" />
+                      <span>🔔 Напомнить в приложении</span>
+                    </>
+                  )}
+                </button>
               </div>
             </motion.div>
           ))}

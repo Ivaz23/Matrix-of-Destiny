@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Compass, Sparkles, HelpCircle } from 'lucide-react';
+import { Compass, Sparkles, HelpCircle, Flame, ShieldAlert, CheckCircle2, Volume2, VolumeX, ChevronRight, Info } from 'lucide-react';
 import { MatrixNumbers, UserInput, EnergyDetails } from '../types';
 import { getEnergyAnalysis, getSpeech, decodeAudioData } from '../services/geminiService';
+import { calculateKarmicTailTriad, getKarmicTailDetails, ARCANA_SHORT_NAMES, KarmicTailDetails } from '../services/karmicTailUtils';
 
 interface MatrixVisualProps {
   matrix: MatrixNumbers;
@@ -9,14 +10,16 @@ interface MatrixVisualProps {
   onOpenGuide?: () => void;
 }
 
-type MatrixPosition = 'day' | 'month' | 'year' | 'bottom' | 'center';
+type MatrixPosition = 'day' | 'month' | 'year' | 'bottom' | 'center' | 'karmic_mid' | 'karmic_in';
 
 const POSITION_TITLES: Record<MatrixPosition, string> = {
   day: "Личность (Портрет)",
   month: "Талант (Высшая Суть)",
   year: "Материя и Здоровье",
-  bottom: "Кармический Хвост",
-  center: "Зона Комфорта (Душа)"
+  bottom: "Кармический Хвост (Главный Урок)",
+  center: "Зона Комфорта (Душа)",
+  karmic_mid: "Кармический Хвост (Связующий Узел)",
+  karmic_in: "Кармический Хвост (Вход в Отношения и Деньги)"
 };
 
 const MatrixVisual: React.FC<MatrixVisualProps> = ({ matrix, userInput, onOpenGuide }) => {
@@ -25,6 +28,7 @@ const MatrixVisual: React.FC<MatrixVisualProps> = ({ matrix, userInput, onOpenGu
   const [details, setDetails] = useState<EnergyDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isKarmicModalOpen, setIsKarmicModalOpen] = useState(false);
   
   // Audio State
   const [isAudioLoading, setIsAudioLoading] = useState(false);
@@ -32,6 +36,11 @@ const MatrixVisual: React.FC<MatrixVisualProps> = ({ matrix, userInput, onOpenGu
   const [audioError, setAudioError] = useState<string | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
+
+  // Compute Karmic Tail Triad and Details
+  const karmicTriad = calculateKarmicTailTriad(matrix);
+  const [dBottom, dMid, dIn] = karmicTriad;
+  const karmicTailInfo = getKarmicTailDetails(matrix);
 
   useEffect(() => {
     return () => {
@@ -193,6 +202,29 @@ const MatrixVisual: React.FC<MatrixVisualProps> = ({ matrix, userInput, onOpenGu
             <line x1="328" y1="72" x2="72" y2="328" />
           </g>
 
+          {/* --- Karmic Tail Segment Visualizer --- */}
+          <g className="karmic-tail-track">
+            {/* Glowing connecting ribbon for the 3 lower arcana */}
+            <path 
+              d="M 200 350 L 200 255" 
+              stroke="url(#sphereRed)" 
+              strokeWidth="4" 
+              strokeLinecap="round"
+              strokeDasharray="4 2"
+              className="opacity-60 animate-pulse" 
+            />
+            {/* Karmic Tail Bracket */}
+            <path 
+              d="M 225 350 Q 235 305 225 255" 
+              fill="none" 
+              stroke="#ef4444" 
+              strokeWidth="1.5" 
+              strokeDasharray="2 2"
+              className="opacity-70"
+            />
+            <text x="240" y="305" dy="0.35em" fontSize="9" fontWeight="bold" className="fill-red-400 font-serif tracking-wider uppercase">Хвост</text>
+          </g>
+
           {/* --- Interactive 3D Spheres --- */}
 
           {/* Central (Comfort Zone) */}
@@ -231,17 +263,6 @@ const MatrixVisual: React.FC<MatrixVisualProps> = ({ matrix, userInput, onOpenGu
             <text x="350" y="238" textAnchor="middle" fontSize="10" className="uppercase tracking-widest font-bold fill-[#ef4444] print:fill-black opacity-0 group-hover/node:opacity-100 transition-opacity translate-y-2 group-hover/node:translate-y-0 duration-300">Материя</text>
           </g>
 
-          {/* Bottom (Karma) */}
-          <g 
-            onClick={() => handlePointClick('bottom', matrix.bottom)}
-            className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'bottom' ? 'pop-active' : ''}`}
-          >
-            <circle cx="200" cy="350" r="25" className="fill-red-500/20 blur-md group-hover/node:fill-red-500/40 group-hover/node:animate-pulse" />
-            <circle cx="200" cy="350" r="22" className="fill-[url(#sphereRed)] print:fill-white print:stroke-black print:stroke-2 group-hover/node:filter-url(#hoverGlow)" />
-            <text x="200" y="350" dy="0.35em" textAnchor="middle" fontSize="14" fontWeight="bold" className="fill-red-950 print:fill-black pointer-events-none">{matrix.bottom}</text>
-            <text x="200" y="385" textAnchor="middle" fontSize="10" className="uppercase tracking-widest font-bold fill-[#ef4444] print:fill-black opacity-0 group-hover/node:opacity-100 transition-opacity translate-y-2 group-hover/node:translate-y-0 duration-300">Карма</text>
-          </g>
-
           {/* Left (Day) */}
           <g 
             onClick={() => handlePointClick('day', matrix.day)}
@@ -253,12 +274,121 @@ const MatrixVisual: React.FC<MatrixVisualProps> = ({ matrix, userInput, onOpenGu
             <text x="50" y="165" textAnchor="middle" fontSize="10" className="uppercase tracking-widest font-bold fill-[#a855f7] print:fill-black opacity-0 group-hover/node:opacity-100 transition-opacity translate-y-2 group-hover/node:translate-y-0 duration-300">Я</text>
           </g>
 
+          {/* --- Karmic Tail Nodes (Three Lower Arcana) --- */}
+
+          {/* 1. Karmic Inflow Node D2 (Entrance to Money/Love) */}
+          <g 
+            onClick={() => handlePointClick('karmic_in', dIn)}
+            className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'karmic_in' ? 'pop-active' : ''}`}
+          >
+            <circle cx="200" cy="255" r="16" className="fill-rose-950 stroke-rose-500 stroke-1 shadow-md group-hover/node:fill-rose-900 group-hover/node:stroke-rose-400 transition-all" />
+            <text x="200" y="255" dy="0.35em" textAnchor="middle" fontSize="11" fontWeight="bold" className="fill-rose-200 pointer-events-none">{dIn}</text>
+            <text x="175" y="255" dy="0.35em" textAnchor="end" fontSize="8" className="fill-rose-400/80 uppercase font-mono tracking-tight opacity-0 group-hover/node:opacity-100 transition-opacity">Вход</text>
+          </g>
+
+          {/* 2. Karmic Mid Node D1 (Intermediate Karmic Node) */}
+          <g 
+            onClick={() => handlePointClick('karmic_mid', dMid)}
+            className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'karmic_mid' ? 'pop-active' : ''}`}
+          >
+            <circle cx="200" cy="305" r="18" className="fill-rose-900 stroke-red-500 stroke-1.5 shadow-md group-hover/node:fill-rose-800 group-hover/node:stroke-red-400 transition-all" />
+            <text x="200" y="305" dy="0.35em" textAnchor="middle" fontSize="12" fontWeight="bold" className="fill-rose-100 pointer-events-none">{dMid}</text>
+            <text x="172" y="305" dy="0.35em" textAnchor="end" fontSize="8" className="fill-rose-400/80 uppercase font-mono tracking-tight opacity-0 group-hover/node:opacity-100 transition-opacity">Узел</text>
+          </g>
+
+          {/* 3. Karmic Bottom Node D (Main Past Life Debt) */}
+          <g 
+            onClick={() => handlePointClick('bottom', matrix.bottom)}
+            className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'bottom' ? 'pop-active' : ''}`}
+          >
+            <circle cx="200" cy="355" r="24" className="fill-red-500/20 blur-md group-hover/node:fill-red-500/40 group-hover/node:animate-pulse" />
+            <circle cx="200" cy="355" r="21" className="fill-[url(#sphereRed)] print:fill-white print:stroke-black print:stroke-2 group-hover/node:filter-url(#hoverGlow)" />
+            <text x="200" y="355" dy="0.35em" textAnchor="middle" fontSize="14" fontWeight="bold" className="fill-red-950 print:fill-black pointer-events-none">{matrix.bottom}</text>
+            <text x="200" y="388" textAnchor="middle" fontSize="10" className="uppercase tracking-widest font-bold fill-[#ef4444] print:fill-black opacity-0 group-hover/node:opacity-100 transition-opacity translate-y-2 group-hover/node:translate-y-0 duration-300">Основа</text>
+          </g>
+
         </svg>
+      </div>
+
+      {/* Karmic Tail Sacred Visual Banner & Summary */}
+      <div className="mt-4 w-full rounded-2xl bg-gradient-to-r from-rose-950/40 via-purple-950/30 to-rose-950/40 border border-rose-500/30 p-4 shadow-lg backdrop-blur-md no-print">
+        <div className="flex items-center justify-between gap-3 mb-2.5 pb-2.5 border-b border-rose-500/20">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+              <Flame size={16} />
+            </div>
+            <div>
+              <span className="text-xs font-serif font-bold text-white tracking-wide block">
+                Кармический Хвост (Три Нижних Аркана)
+              </span>
+              <span className="text-[10px] text-rose-300/80 font-mono">
+                Код души: {karmicTailInfo.code}
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setIsKarmicModalOpen(true)}
+            className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-200 text-xs font-serif font-bold flex items-center gap-1 transition-all cursor-pointer"
+          >
+            <span>Разбор</span>
+            <ChevronRight size={13} />
+          </button>
+        </div>
+
+        {/* 3 Lower Arcana Badges */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <div 
+            onClick={() => handlePointClick('bottom', dBottom)}
+            className="p-2 rounded-xl bg-black/40 border border-red-500/30 hover:border-red-400 flex flex-col items-center text-center cursor-pointer transition-all hover:scale-102"
+          >
+            <span className="text-[9px] uppercase font-bold text-red-400 mb-0.5">Основа (D)</span>
+            <span className="text-base font-serif font-black text-red-200">{dBottom}</span>
+            <span className="text-[9px] text-slate-300 truncate w-full">{ARCANA_SHORT_NAMES[dBottom] || `Аркан ${dBottom}`}</span>
+          </div>
+
+          <div 
+            onClick={() => handlePointClick('karmic_mid', dMid)}
+            className="p-2 rounded-xl bg-black/40 border border-rose-500/30 hover:border-rose-400 flex flex-col items-center text-center cursor-pointer transition-all hover:scale-102"
+          >
+            <span className="text-[9px] uppercase font-bold text-rose-400 mb-0.5">Узел (D1)</span>
+            <span className="text-base font-serif font-black text-rose-200">{dMid}</span>
+            <span className="text-[9px] text-slate-300 truncate w-full">{ARCANA_SHORT_NAMES[dMid] || `Аркан ${dMid}`}</span>
+          </div>
+
+          <div 
+            onClick={() => handlePointClick('karmic_in', dIn)}
+            className="p-2 rounded-xl bg-black/40 border border-purple-500/30 hover:border-purple-400 flex flex-col items-center text-center cursor-pointer transition-all hover:scale-102"
+          >
+            <span className="text-[9px] uppercase font-bold text-purple-400 mb-0.5">Вход (D2)</span>
+            <span className="text-base font-serif font-black text-purple-200">{dIn}</span>
+            <span className="text-[9px] text-slate-300 truncate w-full">{ARCANA_SHORT_NAMES[dIn] || `Аркан ${dIn}`}</span>
+          </div>
+        </div>
+
+        {/* Short Textual Meaning for User */}
+        <div className="space-y-1.5 text-xs">
+          <p className="font-serif font-bold text-rose-200 text-xs">
+            ✨ {karmicTailInfo.title}
+          </p>
+          <p className="text-slate-300 text-[11px] leading-relaxed font-light line-clamp-2">
+            {karmicTailInfo.pastLifeStory}
+          </p>
+          <div className="pt-1 flex items-center justify-between text-[10px] text-rose-300/90">
+            <span className="truncate">🔑 Ключ в плюс: {karmicTailInfo.unlockKeys[0]}</span>
+            <button 
+              onClick={() => setIsKarmicModalOpen(true)}
+              className="text-amber-400 hover:text-amber-300 underline font-medium shrink-0 ml-2"
+            >
+              Читать полностью
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Onboarding Guide Trigger Banner */}
       {onOpenGuide && (
-        <div className="mt-2 flex items-center justify-center no-print">
+        <div className="mt-3 flex items-center justify-center no-print">
           <button
             onClick={onOpenGuide}
             className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 hover:from-amber-500/25 hover:to-amber-500/25 border border-amber-500/30 hover:border-amber-400/50 text-amber-300 text-xs font-serif font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer group"
@@ -267,6 +397,145 @@ const MatrixVisual: React.FC<MatrixVisualProps> = ({ matrix, userInput, onOpenGu
             <Compass size={14} className="text-amber-400 group-hover:rotate-45 transition-transform" />
             <span>Как читать значения Матрицы?</span>
           </button>
+        </div>
+      )}
+
+      {/* Dedicated Karmic Tail In-Depth Modal */}
+      {isKarmicModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in no-print perspective-1000">
+          <div 
+            className="absolute inset-0 bg-black/70 backdrop-blur-md transition-opacity" 
+            onClick={() => setIsKarmicModalOpen(false)}
+          />
+          
+          <div className="relative card-3d w-full max-w-xl rounded-3xl overflow-hidden flex flex-col max-h-[88vh] animate-float shadow-2xl shadow-rose-950/40 border border-rose-500/40 bg-[#0b0e1b]">
+            
+            {/* Header */}
+            <div className="p-6 border-b border-rose-500/20 bg-gradient-to-r from-rose-950/60 via-purple-950/40 to-transparent flex justify-between items-start shrink-0">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-mono font-bold">
+                    КАРМИЧЕСКИЙ ХВОСТ: {karmicTailInfo.code}
+                  </span>
+                  <span className="text-slate-400 text-xs font-serif">3 нижних аркана</span>
+                </div>
+                <h3 className="text-lg md:text-xl font-serif font-bold text-white">
+                  {karmicTailInfo.title}
+                </h3>
+                <p className="text-xs text-rose-300/80 font-sans mt-0.5">
+                  {karmicTailInfo.subtitle}
+                </p>
+              </div>
+
+              <button 
+                onClick={() => setIsKarmicModalOpen(false)} 
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all transform hover:rotate-90"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-black/40 text-sm">
+              
+              {/* 3 Arcana Visual Row */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-3 rounded-2xl bg-gradient-to-b from-rose-950/50 to-black/50 border border-red-500/30 text-center">
+                  <span className="text-[10px] text-red-400 font-bold uppercase block mb-1">Базовый долг (D)</span>
+                  <div className="w-10 h-10 mx-auto rounded-xl bg-red-500/20 text-red-200 font-serif font-black text-lg flex items-center justify-center border border-red-500/40 mb-1">
+                    {dBottom}
+                  </div>
+                  <span className="text-xs font-medium text-white block">{ARCANA_SHORT_NAMES[dBottom]}</span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">Корень кармы</span>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-gradient-to-b from-rose-950/50 to-black/50 border border-rose-500/30 text-center">
+                  <span className="text-[10px] text-rose-400 font-bold uppercase block mb-1">Узел характера (D1)</span>
+                  <div className="w-10 h-10 mx-auto rounded-xl bg-rose-500/20 text-rose-200 font-serif font-black text-lg flex items-center justify-center border border-rose-500/40 mb-1">
+                    {dMid}
+                  </div>
+                  <span className="text-xs font-medium text-white block">{ARCANA_SHORT_NAMES[dMid]}</span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">Эмоциональный блок</span>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-gradient-to-b from-rose-950/50 to-black/50 border border-purple-500/30 text-center">
+                  <span className="text-[10px] text-purple-400 font-bold uppercase block mb-1">Вход в блага (D2)</span>
+                  <div className="w-10 h-10 mx-auto rounded-xl bg-purple-500/20 text-purple-200 font-serif font-black text-lg flex items-center justify-center border border-purple-500/40 mb-1">
+                    {dIn}
+                  </div>
+                  <span className="text-xs font-medium text-white block">{ARCANA_SHORT_NAMES[dIn]}</span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">Ключ к деньгам и любви</span>
+                </div>
+              </div>
+
+              {/* Past Life Story */}
+              <div className="p-4 rounded-2xl bg-rose-950/20 border border-rose-500/20 space-y-1.5">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-rose-300 flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-rose-400" />
+                  Память Прошлых Воплощений (Откуда пришел хвост)
+                </h4>
+                <p className="text-slate-300 font-light leading-relaxed">
+                  {karmicTailInfo.pastLifeStory}
+                </p>
+                <p className="text-xs text-rose-200/90 pt-1 font-medium">
+                  📌 Главный кармический долг: {karmicTailInfo.karmicDebt}
+                </p>
+              </div>
+
+              {/* Triggers in This Life */}
+              <div className="p-4 rounded-2xl bg-red-950/20 border border-red-500/20 space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-red-300 flex items-center gap-1.5">
+                  <ShieldAlert size={14} className="text-red-400" />
+                  Как проявляется в минусе и основные триггеры
+                </h4>
+                <p className="text-slate-300 font-light leading-relaxed">
+                  {karmicTailInfo.negativeManifestation}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                  {karmicTailInfo.triggers.map((trig, idx) => (
+                    <div key={idx} className="p-2 rounded-xl bg-black/40 border border-red-500/20 text-[11px] text-red-200">
+                      • {trig}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Keys to Plus State */}
+              <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/20 space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                  <CheckCircle2 size={14} className="text-emerald-400" />
+                  Ключи к выводу кармического хвоста в плюс
+                </h4>
+                <p className="text-slate-300 font-light leading-relaxed">
+                  {karmicTailInfo.positiveManifestation}
+                </p>
+                <div className="space-y-1.5 pt-1">
+                  {karmicTailInfo.unlockKeys.map((keyStep, idx) => (
+                    <div key={idx} className="p-2 rounded-xl bg-black/40 border border-emerald-500/20 text-xs text-emerald-100 flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0">
+                        {idx + 1}
+                      </span>
+                      <span>{keyStep}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sacred Affirmation */}
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-1">
+                <span className="text-[10px] uppercase font-bold text-amber-400 tracking-widest">
+                  Сакральная Аффирмация Исцеления Кармы
+                </span>
+                <p className="font-serif italic text-amber-100 text-sm">
+                  «{karmicTailInfo.affirmation}»
+                </p>
+              </div>
+
+            </div>
+
+          </div>
         </div>
       )}
       

@@ -26,14 +26,17 @@ import {
 
 import InputForm from './components/InputForm';
 import MatrixVisual from './components/MatrixVisual';
+import { DailyArcanaWidget } from './components/DailyArcanaWidget';
 import { AppHeader } from './components/AppHeader';
 import { AppCategoryRibbon } from './components/AppCategoryRibbon';
 import { AndroidBottomBar } from './components/AndroidBottomBar';
 import { AndroidInstallModal } from './components/AndroidInstallModal';
 import { AuthModal } from './components/AuthModal';
 import { MatrixOnboardingGuide } from './components/MatrixOnboardingGuide';
+import { PushNotificationModal } from './components/PushNotificationModal';
 import { AppSidebarNavigation, AppNavTabId } from './components/AppSidebarNavigation';
 import { useAndroidInstall } from './hooks/useAndroidInstall';
+import { checkAndTriggerScheduledNotifications } from './services/notificationService';
 
 // Lazy load heavy section modules
 const OrderSection = lazy(() => import('./components/OrderSection'));
@@ -52,6 +55,7 @@ const AncestralLineageSection = lazy(() => import('./components/AncestralLineage
 const DreamOracleSection = lazy(() => import('./components/DreamOracleSection'));
 const CitiesOfPowerSection = lazy(() => import('./components/CitiesOfPowerSection'));
 const AmbientSoundTherapy = lazy(() => import('./components/AmbientSoundTherapy'));
+const MeditationSection = lazy(() => import('./components/MeditationSection'));
 const SacredWallpapersSection = lazy(() => import('./components/SacredWallpapersSection'));
 const ChakrasSection = lazy(() => import('./components/ChakrasSection'));
 const AkashicRecordsSection = lazy(() => import('./components/AkashicRecordsSection'));
@@ -86,12 +90,54 @@ export const App: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isVoiceChatOpen, setIsVoiceChatOpen] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [localCalculations, setLocalCalculations] = useState<SavedCalculation[]>([]);
   
   const savedCalculations = user ? dbCalculations : localCalculations;
   
   const calculatorRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Background Push Notification Scheduler & Deep-linking Listener
+  useEffect(() => {
+    // 1. Check immediately
+    checkAndTriggerScheduledNotifications(userInput, matrix);
+
+    // 2. Periodic checking every 60 seconds
+    const interval = setInterval(() => {
+      checkAndTriggerScheduledNotifications(userInput, matrix);
+    }, 60000);
+
+    // 3. Check on tab visibility restoration
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        checkAndTriggerScheduledNotifications(userInput, matrix);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // 4. Listen for navigation message from Service Worker (when user clicks on notification)
+    const handleSwMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'NAVIGATE_TAB' && event.data.tab) {
+        setActiveTab(event.data.tab as AppNavTabId);
+      }
+    };
+    navigator.serviceWorker?.addEventListener('message', handleSwMessage);
+
+    const handleCustomNavigate = (e: any) => {
+      if (e.detail?.tab) {
+        setActiveTab(e.detail.tab as AppNavTabId);
+      }
+    };
+    window.addEventListener('chubuk_navigate_tab', handleCustomNavigate);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      navigator.serviceWorker?.removeEventListener('message', handleSwMessage);
+      window.removeEventListener('chubuk_navigate_tab', handleCustomNavigate);
+    };
+  }, [userInput, matrix]);
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -344,6 +390,7 @@ export const App: React.FC = () => {
           }}
           onOpenSidebar={() => setIsMenuOpen(true)}
           onOpenAndroidModal={() => setIsAndroidModalOpen(true)}
+          onOpenNotifications={() => setIsNotificationModalOpen(true)}
           user={user}
           onSignIn={() => setIsAuthModalOpen(true)}
           onSignOut={signOut}
@@ -372,6 +419,7 @@ export const App: React.FC = () => {
           onSignIn={signIn}
           onSignOut={signOut}
           onOpenAndroidModal={() => setIsAndroidModalOpen(true)}
+          onOpenNotifications={() => setIsNotificationModalOpen(true)}
         />
 
         {/* Main Application Screen Container */}
@@ -475,8 +523,21 @@ export const App: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Interactive Daily Arcana & Personal Resonance Widget */}
+                    <div className="w-full">
+                      <DailyArcanaWidget 
+                        matrix={matrix} 
+                        userInput={userInput} 
+                        onOpenFullForecast={() => {
+                          triggerHaptic(10);
+                          setActiveTab('daily');
+                        }}
+                        onTriggerHaptic={triggerHaptic}
+                      />
+                    </div>
+
                     {/* Quick App Shortcut Tiles */}
-                    <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div className="w-full grid grid-cols-2 sm:grid-cols-5 gap-2.5">
                       <button
                         onClick={() => { triggerHaptic(10); setActiveTab('daily'); }}
                         className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
@@ -491,11 +552,24 @@ export const App: React.FC = () => {
                       </button>
 
                       <button
+                        onClick={() => { triggerHaptic(10); setActiveTab('meditation'); }}
+                        className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/35 hover:border-amber-400 hover:bg-amber-500/15 flex items-center gap-3 transition-all cursor-pointer text-left shadow-[0_0_15px_rgba(245,158,11,0.1)]"
+                      >
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/25 text-amber-300 flex items-center justify-center shrink-0">
+                          <Flame size={18} />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-xs font-serif font-bold text-amber-200 block truncate">Медитация</span>
+                          <span className="text-[10px] text-amber-400/80 block truncate">432 Гц & Дыхание</span>
+                        </div>
+                      </button>
+
+                      <button
                         onClick={() => { triggerHaptic(10); setActiveTab('chakras'); }}
                         className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
                       >
-                        <div className="w-9 h-9 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center shrink-0">
-                          <Flame size={18} />
+                        <div className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                          <Activity size={18} />
                         </div>
                         <div className="min-w-0">
                           <span className="text-xs font-serif font-bold text-white block truncate">Чакры</span>
@@ -507,7 +581,7 @@ export const App: React.FC = () => {
                         onClick={() => { triggerHaptic(10); setActiveTab('akashic'); }}
                         className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
                       >
-                        <div className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
                           <Scroll size={18} />
                         </div>
                         <div className="min-w-0">
@@ -518,7 +592,7 @@ export const App: React.FC = () => {
 
                       <button
                         onClick={() => { triggerHaptic(10); setActiveTab('tarot'); }}
-                        className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
+                        className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left col-span-2 sm:col-span-1"
                       >
                         <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
                           <Sparkles size={18} />
@@ -561,6 +635,7 @@ export const App: React.FC = () => {
                           console.error(e);
                         }
                       }}
+                      onOpenNotifications={() => setIsNotificationModalOpen(true)}
                     />
                   </div>
                 ) : activeTab === 'tapper' ? (
@@ -572,6 +647,10 @@ export const App: React.FC = () => {
                       onNavigateToTarot={() => setActiveTab('tarot')}
                       onNavigateToSound={() => setActiveTab('daily')}
                     />
+                  </div>
+                ) : activeTab === 'meditation' ? (
+                  <div className="w-full max-w-5xl">
+                    <MeditationSection userInput={userInput} matrix={matrix} onTriggerHaptic={triggerHaptic} />
                   </div>
                 ) : activeTab === 'wallpapers' ? (
                   <div className="w-full max-w-5xl">
@@ -595,7 +674,10 @@ export const App: React.FC = () => {
                   </div>
                 ) : activeTab === 'elective' ? (
                   <div className="w-full max-w-5xl">
-                    <ElectiveDatesSection userInput={userInput} />
+                    <ElectiveDatesSection 
+                      userInput={userInput} 
+                      onOpenNotifications={() => setIsNotificationModalOpen(true)}
+                    />
                   </div>
                 ) : activeTab === 'ancestral' ? (
                   <div className="w-full max-w-5xl">
@@ -636,6 +718,7 @@ export const App: React.FC = () => {
                       onHistoryMerged={(count) => {
                         showToast(`Синхронизировано ${count} расчетов с облаком`);
                       }}
+                      onOpenNotifications={() => setIsNotificationModalOpen(true)}
                     />
                   </div>
                 ) : (
@@ -673,6 +756,13 @@ export const App: React.FC = () => {
           isAndroid={isAndroid}
           onTriggerInstall={triggerInstall}
           onTriggerHaptic={triggerHaptic}
+        />
+
+        {/* Push Notification & Daily Reminders Modal */}
+        <PushNotificationModal
+          isOpen={isNotificationModalOpen}
+          onClose={() => setIsNotificationModalOpen(false)}
+          userInput={userInput}
         />
 
         {/* User Authentication & Account Modal */}

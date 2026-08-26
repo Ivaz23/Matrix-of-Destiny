@@ -44,7 +44,10 @@ import {
   getTodayDateString, 
   formatNumberAbbreviated, 
   soundFx, 
-  UpgradeCard 
+  UpgradeCard,
+  ENERGY_REGEN_PER_SECOND,
+  ENERGY_REGEN_INTERVAL_MINUTES,
+  ENERGY_REGEN_AMOUNT_PER_INTERVAL
 } from '../services/tapperGameUtils';
 import { UserInput, MatrixNumbers } from '../types';
 import { KarmicLeaderboard } from './KarmicLeaderboard';
@@ -124,8 +127,8 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
         const newCoins = prev.coins + profitPerSec;
         const newTotalEarned = prev.totalEarned + profitPerSec;
 
-        // Regenerate 3 energy per sec up to maxEnergy
-        const newEnergy = Math.min(prev.maxEnergy, prev.energy + 3);
+        // Regenerate energy at calibrated rate: exactly 100 energy per 10 minutes (1 energy per 6s)
+        const newEnergy = Math.min(prev.maxEnergy, prev.energy + ENERGY_REGEN_PER_SECOND);
         const currentRank = getRankLevel(newTotalEarned);
 
         const updated: TapperGameState = {
@@ -730,16 +733,51 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
                     <Zap size={14} className="fill-amber-400 text-amber-400" />
                     <span>Энергия Праны</span>
                   </span>
-                  <span className="font-mono text-slate-300 font-semibold">
-                    {Math.floor(gameState.energy)} / {gameState.maxEnergy}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300/90 border border-amber-500/20 font-mono">
+                      +100 за 10 мин
+                    </span>
+                    <span className="font-mono text-slate-200 font-bold">
+                      {Math.floor(gameState.energy)} / {gameState.maxEnergy}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="w-full h-3 bg-black/60 rounded-full overflow-hidden border border-white/10 p-0.5">
+                <div className="w-full h-3 bg-black/60 rounded-full overflow-hidden border border-white/10 p-0.5 relative">
                   <div
-                    className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full transition-all duration-150"
+                    className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full transition-all duration-300"
                     style={{ width: `${(gameState.energy / gameState.maxEnergy) * 100}%` }}
                   />
+                </div>
+
+                {/* Energy Status / Full time countdown & Quick Boost Trigger */}
+                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+                  {gameState.energy < gameState.maxEnergy ? (
+                    <span className="flex items-center gap-1 text-slate-400">
+                      <Clock size={11} className="text-amber-400/80" />
+                      <span>
+                        До полного заряда: ~
+                        {Math.ceil((gameState.maxEnergy - gameState.energy) / ENERGY_REGEN_PER_SECOND / 60) >= 60
+                          ? `${Math.floor(Math.ceil((gameState.maxEnergy - gameState.energy) / ENERGY_REGEN_PER_SECOND / 60) / 60)} ч ${Math.ceil((gameState.maxEnergy - gameState.energy) / ENERGY_REGEN_PER_SECOND / 60) % 60} мин`
+                          : `${Math.ceil((gameState.maxEnergy - gameState.energy) / ENERGY_REGEN_PER_SECOND / 60)} мин`}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="text-emerald-400 font-medium flex items-center gap-1">
+                      <CheckCircle2 size={11} />
+                      <span>Максимальный заряд готов</span>
+                    </span>
+                  )}
+
+                  {gameState.fullEnergyBoostsLeft > 0 && gameState.energy < gameState.maxEnergy * 0.7 && (
+                    <button
+                      type="button"
+                      onClick={() => setIsBoostModalOpen(true)}
+                      className="text-amber-400 hover:text-amber-300 underline font-medium cursor-pointer"
+                    >
+                      Буст ({gameState.fullEnergyBoostsLeft})
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1347,7 +1385,7 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
                 <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-between gap-3">
                   <div className="space-y-0.5">
                     <h4 className="text-sm font-serif font-bold text-white">Полная Энергия</h4>
-                    <p className="text-xs text-slate-400">Восстанавливает шкалу праны до 100%</p>
+                    <p className="text-xs text-slate-400">Мгновенно восстанавливает 100% праны (базово: +100 за 10 мин)</p>
                     <span className="text-[10px] text-amber-400 font-bold">
                       Осталось: {gameState.fullEnergyBoostsLeft} из 6 сегодня
                     </span>

@@ -39,6 +39,7 @@ interface CategoryItem {
 const CATEGORIES: CategoryItem[] = [
   { id: 'matrix', label: 'Матрица Судьбы', shortLabel: 'Матрица', icon: '🌟', highlight: true },
   { id: 'tapper', label: 'Chubuk Kombat (Тапалка)', shortLabel: 'Тапалка 🪙', icon: '🪙', badge: 'PLAY', highlight: true },
+  { id: 'meditation', label: 'Медитация & Звук', shortLabel: 'Медитация 🧘', icon: '🧘', badge: '432Hz', highlight: true },
   { id: 'daily', label: 'Прогноз Дня', shortLabel: 'Прогноз', icon: '🔮', badge: 'AI' },
   { id: 'wallpapers', label: 'Обои 9:16 HD', shortLabel: 'Обои 9:16', icon: '📱', badge: 'HD' },
   { id: 'chakras', label: 'Энергия Чакр', shortLabel: 'Чакры', icon: '🧘' },

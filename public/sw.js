@@ -333,4 +333,103 @@ self.addEventListener('message', async (event) => {
       });
     }
   }
+
+  // Handle immediate local notification triggering via Service Worker
+  if (data.type === 'SHOW_LOCAL_NOTIFICATION' && data.payload) {
+    const payload = data.payload;
+    const options = {
+      body: payload.body || 'Новое напоминание от Старца Чубука',
+      icon: payload.icon || '/icon-192.png',
+      badge: payload.badge || '/favicon-32x32.png',
+      tag: payload.tag || 'chubuk-notification',
+      renotify: true,
+      vibrate: payload.vibrate || [120, 60, 120],
+      data: {
+        url: payload.url || '/?tab=daily',
+        tab: payload.tab || 'daily',
+        timestamp: Date.now()
+      },
+      actions: payload.actions || [
+        { action: 'open_tab', title: '✨ Открыть' },
+        { action: 'dismiss', title: 'Позже' }
+      ]
+    };
+    self.registration.showNotification(payload.title || 'Матрица Судьбы — Прогноз', options);
+  }
+});
+
+// 5. Push Notifications Listener (Web Push API)
+self.addEventListener('push', (event) => {
+  let data = {
+    title: '🔮 Старец Чубук — Прогноз Дня',
+    body: 'Ваш сакральный прогноз и благоприятные даты на сегодня готовы!',
+    url: '/?tab=daily',
+    tab: 'daily'
+  };
+
+  if (event.data) {
+    try {
+      const json = event.data.json();
+      data = { ...data, ...json };
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/icon-192.png',
+    badge: data.badge || '/favicon-32x32.png',
+    tag: data.tag || 'chubuk-daily-push',
+    renotify: true,
+    vibrate: [150, 80, 150, 80, 200],
+    data: {
+      url: data.url || '/?tab=daily',
+      tab: data.tab || 'daily',
+      date: new Date().toISOString()
+    },
+    actions: data.actions || [
+      { action: 'open_forecast', title: '🔮 Прогноз' },
+      { action: 'open_calendar', title: '📅 Даты Силы' }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Матрица Судьбы', options)
+  );
+});
+
+// 6. Notification Click & Deep-Linking Action Handler
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  let targetTab = event.notification.data?.tab || 'daily';
+  let targetUrl = event.notification.data?.url || `/?tab=${targetTab}`;
+
+  if (event.action === 'open_calendar') {
+    targetTab = 'elective';
+    targetUrl = '/?tab=elective';
+  } else if (event.action === 'open_forecast') {
+    targetTab = 'daily';
+    targetUrl = '/?tab=daily';
+  }
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // If a window is already open, focus it and notify tab switch
+      for (const client of clientList) {
+        if ('focus' in client) {
+          client.postMessage({
+            type: 'NAVIGATE_TAB',
+            tab: targetTab
+          });
+          return client.focus();
+        }
+      }
+      // If no window is open, open a new one with the target tab
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });

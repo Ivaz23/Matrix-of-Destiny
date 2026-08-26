@@ -25,12 +25,14 @@ import {
   ChevronRight,
   Flame,
   Volume2,
-  Coins
+  Coins,
+  Bell
 } from 'lucide-react';
 
 export type AppNavTabId = 
   | 'matrix' 
   | 'tapper'
+  | 'meditation'
   | 'wallpapers' 
   | 'chakras' 
   | 'akashic' 
@@ -78,6 +80,14 @@ const NAV_CATEGORIES: NavCategory[] = [
         icon: Coins,
         badge: 'GAME',
         color: '#facc15'
+      },
+      {
+        id: 'meditation',
+        label: 'Медитация & Звукотерапия',
+        description: 'Частоты 432/528 Гц, пранаяма-гид и медитация на арканы',
+        icon: Flame,
+        badge: '432Hz',
+        color: '#f59e0b'
       },
       {
         id: 'wallpapers',
@@ -223,6 +233,7 @@ interface AppSidebarNavigationProps {
   onSignIn: () => void;
   onSignOut: () => void;
   onOpenAndroidModal?: () => void;
+  onOpenNotifications?: () => void;
 }
 
 export const AppSidebarNavigation: React.FC<AppSidebarNavigationProps> = ({
@@ -233,7 +244,8 @@ export const AppSidebarNavigation: React.FC<AppSidebarNavigationProps> = ({
   user,
   onSignIn,
   onSignOut,
-  onOpenAndroidModal
+  onOpenAndroidModal,
+  onOpenNotifications
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -407,6 +419,24 @@ export const AppSidebarNavigation: React.FC<AppSidebarNavigationProps> = ({
 
             {/* Footer Profile & Quick Action */}
             <div className="p-4 border-t border-white/10 bg-[#080d19] shrink-0 space-y-2.5">
+              {onOpenNotifications && (
+                <button
+                  onClick={() => {
+                    onOpenNotifications();
+                    onClose();
+                  }}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-200 hover:border-amber-400 hover:text-white transition-all text-xs font-serif font-bold cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <Bell size={16} className="text-amber-400" />
+                    <span>🔔 Настроить Push-уведомления</span>
+                  </div>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                    Напоминания
+                  </span>
+                </button>
+              )}
+
               {onOpenAndroidModal && (
                 <button
                   onClick={() => {
