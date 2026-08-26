@@ -177,14 +177,14 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, userInput, 
             onClick={handleDownloadPdf}
             disabled={isGeneratingPdf}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all bg-gradient-to-r from-amber-500/25 via-amber-500/35 to-amber-600/40 text-amber-200 border border-amber-500/50 hover:from-amber-500 hover:to-amber-600 hover:text-black shadow-[0_0_20px_rgba(251,191,36,0.25)] cursor-pointer"
-            title="Скачать полный отчет (Матрица + Астрологический анализ)"
+            title="Скачать отчет (PDF)"
           >
             {isGeneratingPdf ? (
               <Loader2 className="animate-spin" size={15} />
             ) : (
               <FileText size={15} className="text-amber-400 group-hover:text-black" />
             )}
-            <span>{isGeneratingPdf ? 'Формирование отчета...' : 'Скачать полный отчет'}</span>
+            <span>{isGeneratingPdf ? 'Формирование отчета...' : 'Скачать отчет (PDF)'}</span>
           </button>
 
           <button
@@ -331,7 +331,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, userInput, 
           ) : (
             <Download size={18} />
           )}
-          <span>{isGeneratingPdf ? 'Формирование отчета...' : 'Скачать полный отчет'}</span>
+          <span>{isGeneratingPdf ? 'Формирование отчета...' : 'Скачать отчет (PDF)'}</span>
         </button>
       </div>
 

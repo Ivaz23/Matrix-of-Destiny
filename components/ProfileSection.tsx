@@ -22,13 +22,22 @@ import {
   LogIn, 
   LogOut,
   Smartphone,
-  Cpu
+  Cpu,
+  Cloud,
+  CloudUpload,
+  HardDrive,
+  ArrowRightLeft,
+  Check,
+  ToggleLeft,
+  ToggleRight,
+  Database
 } from 'lucide-react';
 import { SavedCalculation, UserInput } from '../types';
 import { exportCalculationsToPdf, downloadAudioForCalculation } from '../services/exportUtils';
 import { useGlobalAudio } from '../src/hooks/useGlobalAudio';
 import { testAiProxyConnection, getApiBaseUrl } from '../services/geminiService';
 import { useAuth } from '../hooks/useAuth';
+import { useFirestore } from '../hooks/useFirestore';
 import AuthModal from './AuthModal';
 
 interface ProfileSectionProps {
@@ -37,6 +46,7 @@ interface ProfileSectionProps {
   onSelectCalculation: (calc: SavedCalculation) => void;
   onDeleteCalculation: (id: string) => void;
   onClearProfile: () => void;
+  onHistoryMerged?: (mergedCount: number) => void;
 }
 
 export const ProfileSection: React.FC<ProfileSectionProps> = ({
@@ -44,10 +54,12 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   savedCalculations,
   onSelectCalculation,
   onDeleteCalculation,
-  onClearProfile
+  onClearProfile,
+  onHistoryMerged
 }) => {
   const { user, signOut } = useAuth();
   const { loadingId, setLoadingId } = useGlobalAudio();
+  const { mergeLocalCalculations } = useFirestore(user?.uid);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [proxyUrl, setProxyUrl] = useState('');
@@ -58,12 +70,104 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
     message?: string;
   }>({ testing: false });
 
+  // History Merge State
+  const [localHistoryCount, setLocalHistoryCount] = useState(0);
+  const [isMerging, setIsMerging] = useState(false);
+  const [mergeStatus, setMergeStatus] = useState<{
+    type: 'idle' | 'success' | 'error';
+    message: string;
+    mergedCount?: number;
+  }>({ type: 'idle', message: '' });
+  
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('chubuk_auto_sync_history');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const [lastSyncTime, setLastSyncTime] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('chubuk_last_history_sync_time');
+    } catch {
+      return null;
+    }
+  });
+
+  const getLocalCalculations = (): SavedCalculation[] => {
+    try {
+      const raw = localStorage.getItem('chubuk_history');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  };
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem('chubuk_custom_proxy_url') || '';
       setProxyUrl(saved);
+      const localCalcs = getLocalCalculations();
+      setLocalHistoryCount(localCalcs.length);
     } catch (e) {}
   }, []);
+
+  const handleToggleAutoSync = () => {
+    const nextVal = !autoSyncEnabled;
+    setAutoSyncEnabled(nextVal);
+    try {
+      localStorage.setItem('chubuk_auto_sync_history', String(nextVal));
+    } catch (e) {}
+  };
+
+  const handleMergeHistory = async () => {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    setIsMerging(true);
+    setMergeStatus({ type: 'idle', message: '' });
+
+    try {
+      const localCalcs = getLocalCalculations();
+      if (localCalcs.length === 0) {
+        setMergeStatus({
+          type: 'success',
+          message: 'Локальная история пуста. Все расчеты уже в облаке!'
+        });
+        setIsMerging(false);
+        return;
+      }
+
+      const result = await mergeLocalCalculations(localCalcs);
+      const nowStr = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+      setLastSyncTime(nowStr);
+      try {
+        localStorage.setItem('chubuk_last_history_sync_time', nowStr);
+      } catch (e) {}
+
+      setMergeStatus({
+        type: 'success',
+        message: `Успешно объединено: перенесено ${result.mergedCount} расчетов в облачный аккаунт Firestore.`,
+        mergedCount: result.mergedCount
+      });
+
+      if (onHistoryMerged) {
+        onHistoryMerged(result.mergedCount);
+      }
+    } catch (err: any) {
+      console.error("Error merging history:", err);
+      setMergeStatus({
+        type: 'error',
+        message: 'Не удалось завершить объединение данных. Проверьте интернет-соединение.'
+      });
+    } finally {
+      setIsMerging(false);
+    }
+  };
 
   const handleDownload = async (text: string, filename: string, id: string) => {
     setLoadingId(id);
@@ -111,10 +215,138 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
         <div className="inline-flex p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 mb-1">
           <User size={30} />
         </div>
-        <h2 className="text-3xl md:text-4xl font-serif text-white tracking-wide">Профиль и Настройки Связи</h2>
+        <h2 className="text-3xl md:text-4xl font-serif text-white tracking-wide">Профиль и Синхронизация</h2>
         <p className="text-slate-400 max-w-xl mx-auto text-xs md:text-sm">
-          Управление синхронизацией, безопасным доступом к AI без VPN и сохраненными расчетами.
+          Управление облачным аккаунтом, объединением истории расчетов и безопасным доступом к AI.
         </p>
+      </div>
+
+      {/* Top Banner: History Merge & Cross-Device Sync Feature */}
+      <div className="bg-gradient-to-r from-[#0d162d] via-[#101b38] to-[#0d162d] border border-amber-500/30 rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-2 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-300">
+                <ArrowRightLeft size={18} />
+              </div>
+              <span className="text-xs uppercase font-bold tracking-wider text-amber-400">
+                Кросс-девайс доступ к расчетам
+              </span>
+              {user && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Firestore активен
+                </span>
+              )}
+            </div>
+            
+            <h3 className="text-xl sm:text-2xl font-serif text-white">
+              Объединение локальной истории с облаком
+            </h3>
+            
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Перенесите расчеты, сделанные в этом браузере, в ваш облачный аккаунт Firestore. После объединения ваши матрицы, астрологические карты и расклады Таро будут мгновенно доступны на телефоне, планшете и других устройствах.
+            </p>
+
+            {/* Status counts badge */}
+            <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-slate-300">
+                <HardDrive size={14} className="text-slate-400" />
+                <span>В браузере: <strong className="text-amber-300 font-semibold">{localHistoryCount}</strong></span>
+              </div>
+              
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-slate-300">
+                <Cloud size={14} className="text-sky-400" />
+                <span>В облаке Firestore: <strong className="text-sky-300 font-semibold">{user ? savedCalculations.length : 'Требуется вход'}</strong></span>
+              </div>
+
+              {lastSyncTime && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-[11px]">
+                  <Check size={12} />
+                  <span>Посл. синхронизация: {lastSyncTime}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action area */}
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-3 w-full lg:w-auto shrink-0">
+            {/* Auto-sync toggle */}
+            <div className="flex items-center justify-between sm:justify-start lg:justify-between gap-3 p-3 rounded-2xl bg-black/30 border border-white/10">
+              <div className="text-left">
+                <p className="text-xs text-white font-medium">Автосинхронизация</p>
+                <p className="text-[10px] text-slate-400">Объединять новые расчеты с облаком</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleToggleAutoSync}
+                className="text-amber-400 hover:text-amber-300 transition-colors p-1 cursor-pointer"
+                title={autoSyncEnabled ? "Автосинхронизация включена" : "Автосинхронизация выключена"}
+              >
+                {autoSyncEnabled ? (
+                  <ToggleRight size={32} className="text-amber-400" />
+                ) : (
+                  <ToggleLeft size={32} className="text-slate-600" />
+                )}
+              </button>
+            </div>
+
+            {/* Merge button */}
+            {user ? (
+              <button
+                type="button"
+                onClick={handleMergeHistory}
+                disabled={isMerging}
+                className="py-3 px-5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-serif font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isMerging ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Синхронизация с Firestore...</span>
+                  </>
+                ) : (
+                  <>
+                    <CloudUpload size={16} />
+                    <span>Объединить историю ({localHistoryCount})</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsAuthModalOpen(true)}
+                className="py-3 px-5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-serif font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+              >
+                <LogIn size={16} />
+                <span>Войти для синхронизации</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Merge feedback banner */}
+        <AnimatePresence>
+          {mergeStatus.message && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className={`mt-4 p-3 rounded-2xl text-xs flex items-center gap-2.5 ${
+                mergeStatus.type === 'success' 
+                  ? 'bg-emerald-950/70 text-emerald-200 border border-emerald-500/40' 
+                  : 'bg-red-950/70 text-red-200 border border-red-500/40'
+              }`}
+            >
+              {mergeStatus.type === 'success' ? (
+                <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+              ) : (
+                <AlertTriangle size={16} className="text-red-400 shrink-0" />
+              )}
+              <span className="flex-1">{mergeStatus.message}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
@@ -126,10 +358,10 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
             <h3 className="text-lg font-serif text-white flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Shield size={18} className="text-amber-400" />
-                Синхронизация
+                Аккаунт
               </span>
               <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${user ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'}`}>
-                {user ? 'Облако' : 'Локально'}
+                {user ? 'В сети' : 'Гость'}
               </span>
             </h3>
 
@@ -160,7 +392,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
             ) : (
               <div className="space-y-3">
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Войдите или зарегистрируйтесь, чтобы ваши матрицы и история были доступны на любом устройстве.
+                  Войдите или зарегистрируйтесь, чтобы ваши матрицы и история были защищены и доступны на любом устройстве.
                 </p>
                 <button
                   onClick={() => setIsAuthModalOpen(true)}
@@ -212,7 +444,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
             )}
           </div>
 
-          {/* AI Connection & Proxy Panel (Option A - No VPN required) */}
+          {/* AI Connection & Proxy Panel */}
           <div className="bg-[#0b1020]/90 backdrop-blur-xl border border-amber-500/30 rounded-3xl p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-serif text-white flex items-center gap-2">

@@ -24,11 +24,13 @@ import {
   LogOut, 
   ChevronRight,
   Flame,
-  Volume2
+  Volume2,
+  Coins
 } from 'lucide-react';
 
 export type AppNavTabId = 
   | 'matrix' 
+  | 'tapper'
   | 'wallpapers' 
   | 'chakras' 
   | 'akashic' 
@@ -68,6 +70,14 @@ const NAV_CATEGORIES: NavCategory[] = [
         description: 'Сакральная геометрия и 22 аркана души',
         icon: Sparkles,
         color: '#f59e0b'
+      },
+      {
+        id: 'tapper',
+        label: 'Карма-Тапалка Chubuk Kombat',
+        description: 'Майнинг $CHUBUK, пассивный доход, комбо и дроп',
+        icon: Coins,
+        badge: 'GAME',
+        color: '#facc15'
       },
       {
         id: 'wallpapers',

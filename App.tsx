@@ -56,6 +56,7 @@ const SacredWallpapersSection = lazy(() => import('./components/SacredWallpapers
 const ChakrasSection = lazy(() => import('./components/ChakrasSection'));
 const AkashicRecordsSection = lazy(() => import('./components/AkashicRecordsSection'));
 const PowerCalendarSection = lazy(() => import('./components/PowerCalendarSection'));
+const KarmaTapperSection = lazy(() => import('./components/KarmaTapperSection'));
 
 import { calculateMatrix } from './services/numerologyUtils';
 import { getAstrologyData } from './services/astrologyUtils';
@@ -67,7 +68,7 @@ import { AudioProvider } from './src/hooks/useGlobalAudio';
 
 export const App: React.FC = () => {
   const { user, signIn, signOut, loading: authLoading } = useAuth();
-  const { calculations: dbCalculations, saveCalculation, deleteCalculation, loading: dbLoading } = useFirestore(user?.uid);
+  const { calculations: dbCalculations, saveCalculation, mergeLocalCalculations, deleteCalculation, loading: dbLoading } = useFirestore(user?.uid);
   const { isInstallable, isStandalone, isAndroid, triggerInstall, triggerHaptic } = useAndroidInstall();
 
   const [matrix, setMatrix] = useState<MatrixNumbers | null>(null);
@@ -107,7 +108,7 @@ export const App: React.FC = () => {
       const tabParam = params.get('tab');
       if (tabParam) {
         const validTabs: AppNavTabId[] = [
-          'matrix', 'wallpapers', 'chakras', 'akashic', 'powercal', 'daily',
+          'matrix', 'tapper', 'wallpapers', 'chakras', 'akashic', 'powercal', 'daily',
           'lunar', 'elective', 'ancestral', 'litho', 'dreams', 'cities',
           'astrology', 'compatibility', 'tarot', 'horary', 'profile'
         ];
@@ -137,6 +138,29 @@ export const App: React.FC = () => {
       setIsAppReady(true);
     }
   }, []);
+
+  // Auto-sync local calculations to Firestore when signed in if enabled
+  useEffect(() => {
+    if (!user || !user.uid || localCalculations.length === 0) return;
+    
+    try {
+      const autoSync = localStorage.getItem('chubuk_auto_sync_history');
+      if (autoSync === null || autoSync === 'true') {
+        const syncKey = `chubuk_synced_${user.uid}_${localCalculations.length}`;
+        const hasSynced = sessionStorage.getItem(syncKey);
+        if (!hasSynced) {
+          sessionStorage.setItem(syncKey, 'true');
+          mergeLocalCalculations(localCalculations).then((res) => {
+            if (res.mergedCount > 0) {
+              showToast(`Автоматически синхронизировано ${res.mergedCount} расчетов`);
+            }
+          }).catch((err) => {
+            console.warn("Auto-sync background error:", err);
+          });
+        }
+      }
+    } catch (e) {}
+  }, [user?.uid, localCalculations.length]);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -510,7 +534,14 @@ export const App: React.FC = () => {
                     {analysis && (
                       <div ref={resultsRef} className="w-full space-y-6 animate-fade-in-up">
                         <AnalysisResults analysis={analysis} userInput={userInput} matrix={matrix} astrology={astrology} />
-                        <OrderSection onDownload={() => window.print()} isVisible={true} />
+                        <OrderSection 
+                          userInput={userInput} 
+                          matrix={matrix} 
+                          astrology={astrology} 
+                          analysis={analysis} 
+                          isVisible={true}
+                          onSuccess={() => showToast("Сакральный PDF-отчет успешно сформирован")}
+                        />
                       </div>
                     )}
                   </div>
@@ -530,6 +561,16 @@ export const App: React.FC = () => {
                           console.error(e);
                         }
                       }}
+                    />
+                  </div>
+                ) : activeTab === 'tapper' ? (
+                  <div className="w-full max-w-5xl">
+                    <KarmaTapperSection 
+                      userInput={userInput} 
+                      matrix={matrix} 
+                      onNavigateToMatrix={() => setActiveTab('matrix')}
+                      onNavigateToTarot={() => setActiveTab('tarot')}
+                      onNavigateToSound={() => setActiveTab('daily')}
                     />
                   </div>
                 ) : activeTab === 'wallpapers' ? (
@@ -592,6 +633,9 @@ export const App: React.FC = () => {
                       onSelectCalculation={handleSelectCalculation}
                       onDeleteCalculation={handleDeleteCalculation}
                       onClearProfile={handleClearProfile}
+                      onHistoryMerged={(count) => {
+                        showToast(`Синхронизировано ${count} расчетов с облаком`);
+                      }}
                     />
                   </div>
                 ) : (

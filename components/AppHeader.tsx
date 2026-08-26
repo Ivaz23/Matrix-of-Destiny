@@ -33,6 +33,7 @@ interface AppHeaderProps {
 
 const TAB_TITLES: Record<AppNavTabId, { title: string; subtitle: string; icon: string }> = {
   matrix: { title: 'Матрица Судьбы', subtitle: '22 сакральных аркана души', icon: '🌟' },
+  tapper: { title: 'Chubuk Kombat', subtitle: 'Тапалка кармы, майнинг и дроп $CHUBUK', icon: '🪙' },
   daily: { title: 'Прогноз Дня', subtitle: 'Космическая погода и биоритмы', icon: '🔮' },
   wallpapers: { title: 'Сакральные Обои', subtitle: 'HD талисманы 9:16 на экран', icon: '📱' },
   chakras: { title: 'Карта Чакр', subtitle: 'Диагностика 7 энергоцентров', icon: '🧘' },

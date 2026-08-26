@@ -44,6 +44,27 @@ export const useFirestore = (userId: string | undefined) => {
     }
   };
 
+  const mergeLocalCalculations = async (localCalcs: SavedCalculation[]): Promise<{ mergedCount: number; totalCount: number }> => {
+    if (!userId || !localCalcs || localCalcs.length === 0) {
+      return { mergedCount: 0, totalCount: calculations.length };
+    }
+
+    let mergedCount = 0;
+    for (const calc of localCalcs) {
+      if (!calc || !calc.id) continue;
+      const path = `users/${userId}/calculations/${calc.id}`;
+      try {
+        const docRef = doc(db, 'users', userId, 'calculations', calc.id);
+        await setDoc(docRef, { ...calc, userId }, { merge: true });
+        mergedCount++;
+      } catch (error) {
+        console.warn(`Failed to merge calculation ${calc.id}:`, error);
+      }
+    }
+
+    return { mergedCount, totalCount: calculations.length + mergedCount };
+  };
+
   const deleteCalculation = async (id: string) => {
     if (!userId) return;
     const path = `users/${userId}/calculations/${id}`;
@@ -59,6 +80,7 @@ export const useFirestore = (userId: string | undefined) => {
     calculations,
     loading,
     saveCalculation,
+    mergeLocalCalculations,
     deleteCalculation
   };
 };
