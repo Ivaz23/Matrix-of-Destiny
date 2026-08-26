@@ -6,6 +6,8 @@ export interface SoundscapePreset {
   description: string;
   fire: number;
   rain: number;
+  birds: number;
+  melody: number;
   tibetan432: number;
   solfeggio528: number;
   thetaWaves: number;
@@ -16,22 +18,68 @@ export interface SoundscapePreset {
 export const SOUNDSCAPE_PRESETS: SoundscapePreset[] = [
   {
     id: 'campfire_rain',
-    name: 'Убежище у Костра',
-    description: 'Треск живого огня, уютный вечерний дождь и шелест сосен',
-    fire: 85,
+    name: 'Ночной Костер и Теплый Дождь',
+    description: 'Уютный треск костра, мягкий шум вечернего дождя и шелест сосен',
+    fire: 90,
+    rain: 75,
+    birds: 0,
+    melody: 0,
+    tibetan432: 0,
+    solfeggio528: 0,
+    thetaWaves: 15,
+    wind: 20,
+    icon: 'flame'
+  },
+  {
+    id: 'campfire_rain_birds',
+    name: 'Костер, Дождь и Пение Птиц',
+    description: 'Идеальный релакс: ночной костер, капли дождя по листве и вечерние трели птиц',
+    fire: 80,
     rain: 65,
+    birds: 75,
+    melody: 25,
     tibetan432: 0,
     solfeggio528: 0,
     thetaWaves: 0,
-    wind: 25,
-    icon: 'flame'
+    wind: 20,
+    icon: 'sparkles'
+  },
+  {
+    id: 'birds_forest',
+    name: 'Рассветный Лес и Пение Птиц',
+    description: 'Утреннее щебетание птиц, свежий ветерок, шелест крон и мягкий свет солнца',
+    fire: 0,
+    rain: 15,
+    birds: 95,
+    melody: 35,
+    tibetan432: 15,
+    solfeggio528: 0,
+    thetaWaves: 0,
+    wind: 45,
+    icon: 'cloud-rain'
+  },
+  {
+    id: 'zen_nature_melody',
+    name: 'Сакральная Мелодия Дзен (432 Гц)',
+    description: 'Генеративные переливы колокольчиков, арфы, тибетские чаши и пение птиц',
+    fire: 15,
+    rain: 30,
+    birds: 60,
+    melody: 90,
+    tibetan432: 80,
+    solfeggio528: 0,
+    thetaWaves: 25,
+    wind: 30,
+    icon: 'heart'
   },
   {
     id: 'tibetan_432',
     name: 'Тибетские Чаши (432 Гц)',
-    description: 'Сакральная частота гармонизации вселенной и очищения чакр',
+    description: 'Сакральная частота гармонизации вселенной и глубокого очищения чакр',
     fire: 10,
     rain: 0,
+    birds: 20,
+    melody: 15,
     tibetan432: 90,
     solfeggio528: 0,
     thetaWaves: 30,
@@ -41,9 +89,11 @@ export const SOUNDSCAPE_PRESETS: SoundscapePreset[] = [
   {
     id: 'solfeggio_528',
     name: 'Трансформация (528 Гц)',
-    description: 'Частота чудес, восстановления биополя и раскрытия сердца',
+    description: 'Частота чудес, восстановления биополя, дождя и раскрытия сердца',
     fire: 0,
-    rain: 30,
+    rain: 45,
+    birds: 30,
+    melody: 70,
     tibetan432: 0,
     solfeggio528: 90,
     thetaWaves: 25,
@@ -52,27 +102,17 @@ export const SOUNDSCAPE_PRESETS: SoundscapePreset[] = [
   },
   {
     id: 'deep_theta',
-    name: 'Глубокая Тета-Медитация',
-    description: '6 Гц ритмы для глубокого погружения, работы с подсознанием и сна',
-    fire: 20,
+    name: 'Глубокая Тета-Медитация и Ночь',
+    description: '6 Гц бинауральные ритмы для погружения в сон, снятия стресса и работы с подсознанием',
+    fire: 30,
     rain: 40,
+    birds: 0,
+    melody: 40,
     tibetan432: 50,
     solfeggio528: 0,
-    thetaWaves: 85,
-    wind: 15,
+    thetaWaves: 90,
+    wind: 25,
     icon: 'moon'
-  },
-  {
-    id: 'forest_stream',
-    name: 'Лесной Дождь и Ветер',
-    description: 'Мягкий дождь по листве, горный ветер и свежесть природы',
-    fire: 0,
-    rain: 85,
-    tibetan432: 20,
-    solfeggio528: 0,
-    thetaWaves: 0,
-    wind: 70,
-    icon: 'cloud-rain'
   }
 ];
 
@@ -108,11 +148,26 @@ class AmbientSoundEngine {
   // Volumes (0 to 1)
   private fireVol: number = 0.85;
   private rainVol: number = 0.65;
+  private birdsVol: number = 0.60;
+  private melodyVol: number = 0.40;
   private tibetanVol: number = 0.0;
   private solfeggioVol: number = 0.0;
   private thetaVol: number = 0.0;
   private windVol: number = 0.25;
   private masterVol: number = 0.8;
+
+  // Channels
+  private birdsGain: GainNode | null = null;
+  private melodyGain: GainNode | null = null;
+  private birdsInterval: number | null = null;
+  private melodyInterval: number | null = null;
+
+  // Pentatonic notes frequencies in Hz (tuned to 432Hz reference)
+  private readonly PENTATONIC_SCALE = [
+    216.0, 242.7, 272.2, 324.0, 364.1, // Octave 3
+    432.0, 485.4, 544.3, 648.0, 728.2, // Octave 4
+    864.0, 970.8, 1088.6               // Octave 5
+  ];
 
   // Timer
   private timerTimeout: number | null = null;
@@ -137,6 +192,94 @@ class AmbientSoundEngine {
     if (this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
+  }
+
+  // Realistic Procedural Bird Chirp & Trill
+  private triggerBirdSong() {
+    if (!this.ctx || !this.isPlaying || !this.birdsGain || this.birdsVol <= 0.01) return;
+    try {
+      const now = this.ctx.currentTime;
+      const chirpsCount = 2 + Math.floor(Math.random() * 4); // 2 to 5 quick chirp syllables
+      const baseFreq = 2200 + Math.random() * 1800; // 2.2 kHz - 4.0 kHz
+
+      for (let i = 0; i < chirpsCount; i++) {
+        const chirpStart = now + i * (0.08 + Math.random() * 0.06);
+        const chirpDuration = 0.05 + Math.random() * 0.04;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        osc.type = Math.random() > 0.3 ? 'sine' : 'triangle';
+        
+        // Frequency sweep (up or down trill)
+        const sweepType = Math.random();
+        if (sweepType > 0.5) {
+          osc.frequency.setValueAtTime(baseFreq, chirpStart);
+          osc.frequency.exponentialRampToValueAtTime(baseFreq + 700 + Math.random() * 500, chirpStart + chirpDuration * 0.7);
+          osc.frequency.exponentialRampToValueAtTime(baseFreq + 300, chirpStart + chirpDuration);
+        } else {
+          osc.frequency.setValueAtTime(baseFreq + 800, chirpStart);
+          osc.frequency.exponentialRampToValueAtTime(baseFreq, chirpStart + chirpDuration);
+        }
+
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(baseFreq + 400, chirpStart);
+        filter.Q.setValueAtTime(3.0, chirpStart);
+
+        const chirpVolume = (0.2 + Math.random() * 0.4) * this.birdsVol;
+        gain.gain.setValueAtTime(0.001, chirpStart);
+        gain.gain.linearRampToValueAtTime(chirpVolume, chirpStart + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, chirpStart + chirpDuration);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.birdsGain);
+
+        osc.start(chirpStart);
+        osc.stop(chirpStart + chirpDuration + 0.05);
+      }
+    } catch (e) {}
+  }
+
+  // Generative Pentatonic Nature Zen Melody Note (Bell / Harp / Singing Chime)
+  private triggerMelodyNote() {
+    if (!this.ctx || !this.isPlaying || !this.melodyGain || this.melodyVol <= 0.01) return;
+    try {
+      const now = this.ctx.currentTime;
+      const noteFreq = this.PENTATONIC_SCALE[Math.floor(Math.random() * this.PENTATONIC_SCALE.length)];
+      const duration = 2.5 + Math.random() * 2.0;
+
+      const oscPrimary = this.ctx.createOscillator();
+      const oscHarmonic = this.ctx.createOscillator();
+      const noteGain = this.ctx.createGain();
+      const filter = this.ctx.createBiquadFilter();
+
+      oscPrimary.type = 'sine';
+      oscPrimary.frequency.setValueAtTime(noteFreq, now);
+
+      oscHarmonic.type = 'sine';
+      oscHarmonic.frequency.setValueAtTime(noteFreq * 2 + (Math.random() * 1.5 - 0.75), now); // Soft shimmering harmonic
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(noteFreq * 3.5, now);
+      filter.frequency.exponentialRampToValueAtTime(noteFreq * 1.2, now + duration);
+
+      const amp = (0.15 + Math.random() * 0.25) * this.melodyVol;
+      noteGain.gain.setValueAtTime(0.001, now);
+      noteGain.gain.linearRampToValueAtTime(amp, now + 0.08); // Soft bell attack
+      noteGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      oscPrimary.connect(filter);
+      oscHarmonic.connect(filter);
+      filter.connect(noteGain);
+      noteGain.connect(this.melodyGain);
+
+      oscPrimary.start(now);
+      oscHarmonic.start(now);
+      oscPrimary.stop(now + duration + 0.1);
+      oscHarmonic.stop(now + duration + 0.1);
+    } catch (e) {}
   }
 
   // Pink noise generator for soothing natural textures
@@ -349,9 +492,34 @@ class AmbientSoundEngine {
     this.thetaOscLeft.connect(this.thetaGain);
     this.thetaOscRight.connect(this.thetaGain);
 
-    this.thetaOscLeft.start(now);
-    this.thetaOscRight.start(now);
-    this.thetaLfo.start(now);
+    // ============= 7. FOREST BIRDS PROCEDURAL CHIRPING =============
+    this.birdsGain = this.ctx.createGain();
+    this.birdsGain.gain.setValueAtTime(this.birdsVol * 0.7, now);
+    this.birdsGain.connect(this.masterGain);
+
+    const scheduleNextBirdSong = () => {
+      if (!this.isPlaying) return;
+      this.triggerBirdSong();
+      if (Math.random() > 0.45) {
+        setTimeout(() => this.triggerBirdSong(), 180 + Math.random() * 250);
+      }
+      const nextDelay = 800 + Math.random() * 2400; // Natural bird singing cadence
+      this.birdsInterval = window.setTimeout(scheduleNextBirdSong, nextDelay);
+    };
+    scheduleNextBirdSong();
+
+    // ============= 8. NATURE ZEN GENERATIVE MELODIES =============
+    this.melodyGain = this.ctx.createGain();
+    this.melodyGain.gain.setValueAtTime(this.melodyVol * 0.5, now);
+    this.melodyGain.connect(this.masterGain);
+
+    const scheduleNextMelodyNote = () => {
+      if (!this.isPlaying) return;
+      this.triggerMelodyNote();
+      const nextDelay = 1200 + Math.random() * 2800; // Meditative harp/bell rhythm
+      this.melodyInterval = window.setTimeout(scheduleNextMelodyNote, nextDelay);
+    };
+    scheduleNextMelodyNote();
   }
 
   public stop() {
@@ -363,6 +531,16 @@ class AmbientSoundEngine {
     if (this.fireCrackleInterval) {
       clearTimeout(this.fireCrackleInterval);
       this.fireCrackleInterval = null;
+    }
+
+    if (this.birdsInterval) {
+      clearTimeout(this.birdsInterval);
+      this.birdsInterval = null;
+    }
+
+    if (this.melodyInterval) {
+      clearTimeout(this.melodyInterval);
+      this.melodyInterval = null;
     }
 
     if (this.timerTimeout) {
@@ -398,6 +576,8 @@ class AmbientSoundEngine {
         this.thetaOscLeft?.disconnect();
         this.thetaOscRight?.disconnect();
         this.thetaLfo?.disconnect();
+        this.birdsGain?.disconnect();
+        this.melodyGain?.disconnect();
       } catch (e) {
         // ignore
       }
@@ -416,6 +596,20 @@ class AmbientSoundEngine {
     this.rainVol = Math.max(0, Math.min(1, val));
     if (this.rainGain && this.ctx) {
       this.rainGain.gain.setValueAtTime(this.rainVol, this.ctx.currentTime);
+    }
+  }
+
+  public setBirdsVolume(val: number) {
+    this.birdsVol = Math.max(0, Math.min(1, val));
+    if (this.birdsGain && this.ctx) {
+      this.birdsGain.gain.setValueAtTime(this.birdsVol * 0.7, this.ctx.currentTime);
+    }
+  }
+
+  public setMelodyVolume(val: number) {
+    this.melodyVol = Math.max(0, Math.min(1, val));
+    if (this.melodyGain && this.ctx) {
+      this.melodyGain.gain.setValueAtTime(this.melodyVol * 0.5, this.ctx.currentTime);
     }
   }
 
@@ -457,6 +651,8 @@ class AmbientSoundEngine {
   public applyPreset(preset: SoundscapePreset) {
     this.setFireVolume(preset.fire / 100);
     this.setRainVolume(preset.rain / 100);
+    this.setBirdsVolume((preset.birds || 0) / 100);
+    this.setMelodyVolume((preset.melody || 0) / 100);
     this.setTibetanVolume(preset.tibetan432 / 100);
     this.setSolfeggioVolume(preset.solfeggio528 / 100);
     this.setThetaVolume(preset.thetaWaves / 100);
@@ -649,6 +845,8 @@ class AmbientSoundEngine {
       isPlaying: this.isPlaying,
       fireVol: this.fireVol,
       rainVol: this.rainVol,
+      birdsVol: this.birdsVol,
+      melodyVol: this.melodyVol,
       tibetanVol: this.tibetanVol,
       solfeggioVol: this.solfeggioVol,
       thetaVol: this.thetaVol,

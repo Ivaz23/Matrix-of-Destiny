@@ -33,6 +33,8 @@ export const AmbientSoundTherapy: React.FC = () => {
   // Channels
   const [fireVol, setFireVol] = useState(85);
   const [rainVol, setRainVol] = useState(65);
+  const [birdsVol, setBirdsVol] = useState(70);
+  const [melodyVol, setMelodyVol] = useState(30);
   const [tibetanVol, setTibetanVol] = useState(0);
   const [solfeggioVol, setSolfeggioVol] = useState(0);
   const [thetaVol, setThetaVol] = useState(0);
@@ -59,6 +61,8 @@ export const AmbientSoundTherapy: React.FC = () => {
       ambientSound.setMasterVolume(masterVol / 100);
       ambientSound.setFireVolume(fireVol / 100);
       ambientSound.setRainVolume(rainVol / 100);
+      ambientSound.setBirdsVolume(birdsVol / 100);
+      ambientSound.setMelodyVolume(melodyVol / 100);
       ambientSound.setTibetanVolume(tibetanVol / 100);
       ambientSound.setSolfeggioVolume(solfeggioVol / 100);
       ambientSound.setThetaVolume(thetaVol / 100);
@@ -76,6 +80,8 @@ export const AmbientSoundTherapy: React.FC = () => {
     setActivePresetId(preset.id);
     setFireVol(preset.fire);
     setRainVol(preset.rain);
+    setBirdsVol(preset.birds || 0);
+    setMelodyVol(preset.melody || 0);
     setTibetanVol(preset.tibetan432);
     setSolfeggioVol(preset.solfeggio528);
     setThetaVol(preset.thetaWaves);
@@ -406,7 +412,7 @@ export const AmbientSoundTherapy: React.FC = () => {
                     <div className="flex justify-between items-center text-xs text-blue-200 font-medium">
                       <div className="flex items-center gap-2">
                         <CloudRain size={13} className="text-blue-400" />
-                        <span>Мягкий дождь</span>
+                        <span>Мягкий вечерний дождь</span>
                       </div>
                       <span className="font-mono text-[11px]">{rainVol}%</span>
                     </div>
@@ -424,7 +430,53 @@ export const AmbientSoundTherapy: React.FC = () => {
                     />
                   </div>
 
-                  {/* 3. Tibetan Bowl 432 Hz */}
+                  {/* 3. Birds Singing Volume */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs text-emerald-200 font-medium">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">🐦</span>
+                        <span>Пение лесных птиц (трели & щебет)</span>
+                      </div>
+                      <span className="font-mono text-[11px]">{birdsVol}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={birdsVol}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setBirdsVol(val);
+                        ambientSound.setBirdsVolume(val / 100);
+                      }}
+                      className="w-full accent-emerald-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                    />
+                  </div>
+
+                  {/* 4. Nature Zen Melodies */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs text-amber-300 font-medium">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">✨</span>
+                        <span>Релакс-мелодия & переливы арфы (432 Гц)</span>
+                      </div>
+                      <span className="font-mono text-[11px]">{melodyVol}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={melodyVol}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setMelodyVol(val);
+                        ambientSound.setMelodyVolume(val / 100);
+                      }}
+                      className="w-full accent-amber-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                    />
+                  </div>
+
+                  {/* 5. Tibetan Bowl 432 Hz */}
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs text-purple-200 font-medium">
                       <div className="flex items-center gap-2">

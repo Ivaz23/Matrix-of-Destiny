@@ -25,7 +25,8 @@ import {
   Key,
   ExternalLink,
   ChevronDown,
-  HelpCircle
+  HelpCircle,
+  Trophy
 } from 'lucide-react';
 import { 
   TapperGameState, 
@@ -46,6 +47,7 @@ import {
   UpgradeCard 
 } from '../services/tapperGameUtils';
 import { UserInput, MatrixNumbers } from '../types';
+import { KarmicLeaderboard } from './KarmicLeaderboard';
 
 interface KarmaTapperSectionProps {
   userInput?: UserInput | null;
@@ -55,7 +57,7 @@ interface KarmaTapperSectionProps {
   onNavigateToSound?: () => void;
 }
 
-type SubTabId = 'tapper' | 'mine' | 'combo' | 'quests' | 'airdrop';
+type SubTabId = 'tapper' | 'mine' | 'combo' | 'quests' | 'leaders' | 'airdrop';
 
 interface FloatingNumber {
   id: number;
@@ -557,8 +559,8 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
         </div>
       </div>
 
-      {/* Sub-Navigation Ribbon (5 Game Modes) */}
-      <div className="grid grid-cols-5 gap-1.5 p-1 rounded-2xl bg-[#080d1a] border border-white/10 text-xs">
+      {/* Sub-Navigation Ribbon (6 Game Modes) */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 p-1.5 rounded-2xl bg-[#080d1a] border border-white/10 text-xs">
         <button
           onClick={() => {
             triggerHaptic(8);
@@ -617,6 +619,21 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
         >
           <span className="text-base">📋</span>
           <span className="text-[10px] sm:text-xs">Задания</span>
+        </button>
+
+        <button
+          onClick={() => {
+            triggerHaptic(8);
+            setActiveSubTab('leaders');
+          }}
+          className={`py-2 px-1 rounded-xl font-serif font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
+            activeSubTab === 'leaders' 
+              ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 shadow-md' 
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <span className="text-base">🏆</span>
+          <span className="text-[10px] sm:text-xs">Лидеры</span>
         </button>
 
         <button
@@ -726,6 +743,57 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
                 </div>
               </div>
 
+            </div>
+
+            {/* Quick Actions Bar: Leaders & Relax Ambient Sounds */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Leaderboard Preview Card */}
+              <div 
+                onClick={() => {
+                  triggerHaptic(8);
+                  setActiveSubTab('leaders');
+                }}
+                className="p-3.5 rounded-2xl bg-gradient-to-r from-[#141d33] to-[#0a1020] border border-amber-500/30 hover:border-amber-400 transition-all cursor-pointer flex items-center justify-between group shadow-lg"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-lg shadow-inner">
+                    🏆
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-serif font-bold text-amber-200">Топ Кармических Лидеров</span>
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono">LIVE</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">Смотреть рейтинг и выразить респект</p>
+                  </div>
+                </div>
+                <ChevronRight size={16} className="text-amber-400 group-hover:translate-x-1 transition-transform" />
+              </div>
+
+              {/* Ambient Sound Therapy shortcut */}
+              {onNavigateToSound && (
+                <div 
+                  onClick={() => {
+                    triggerHaptic(8);
+                    onNavigateToSound();
+                  }}
+                  className="p-3.5 rounded-2xl bg-gradient-to-r from-[#171b12] to-[#0d150b] border border-emerald-500/30 hover:border-emerald-400 transition-all cursor-pointer flex items-center justify-between group shadow-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-lg shadow-inner">
+                      🌿
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-serif font-bold text-emerald-200">Звуковая Терапия & Релакс</span>
+                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono">432Hz</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">Костер с дождем, птицы и мелодии</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-emerald-400 group-hover:translate-x-1 transition-transform" />
+                </div>
+              )}
             </div>
 
             {/* Quick Tips & Mini Daily Banner */}
@@ -1114,7 +1182,20 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
           </div>
         )}
 
-        {/* 5. AIRDROP & WEB3 TAB */}
+        {/* 5. KARMIC LEADERS TAB */}
+        {activeSubTab === 'leaders' && (
+          <div className="space-y-4">
+            <KarmicLeaderboard
+              userKarma={gameState.totalEarned}
+              userProfitPerHour={gameState.profitPerHour}
+              userLevel={gameState.level}
+              userName={userInput?.name || 'Вы (Искатель Истины)'}
+              onNavigateToMatrix={onNavigateToMatrix}
+            />
+          </div>
+        )}
+
+        {/* 6. AIRDROP & WEB3 TAB */}
         {activeSubTab === 'airdrop' && (
           <div className="space-y-6">
             
