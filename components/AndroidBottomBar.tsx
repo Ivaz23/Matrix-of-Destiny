@@ -104,12 +104,12 @@ export const AndroidBottomBar: React.FC<AndroidBottomBarProps> = ({
             );
           })}
 
-          {/* Center Floating Action Button: All 18 Sections Menu */}
+          {/* Center Floating Action Button: All 20 Sections Menu */}
           <div className="relative -top-3 flex flex-col items-center px-1">
             <button
               onClick={handleMenuClick}
               className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 text-black flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.55)] border-2 border-[#050811] hover:scale-105 active:scale-95 transition-all cursor-pointer"
-              title="Открыть меню всех 18 разделов"
+              title="Открыть меню всех 20 разделов"
             >
               <Layers size={21} className="stroke-[2.5]" />
             </button>

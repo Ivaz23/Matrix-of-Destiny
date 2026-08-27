@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -275,6 +275,10 @@ export const AppSidebarNavigation: React.FC<AppSidebarNavigationProps> = ({
   }, [isOpen, onClose]);
 
   // Filter items by search query
+  const totalSectionsCount = useMemo(() => 
+    NAV_CATEGORIES.reduce((acc, cat) => acc + cat.items.length, 0),
+  []);
+
   const filteredCategories = NAV_CATEGORIES.map(category => ({
     ...category,
     items: category.items.filter(item => 
@@ -338,7 +342,7 @@ export const AppSidebarNavigation: React.FC<AppSidebarNavigationProps> = ({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Поиск по 17 разделам..."
+                  placeholder={`Поиск по всем ${totalSectionsCount} разделам...`}
                   className="w-full bg-black/60 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors"
                 />
                 {searchQuery && (

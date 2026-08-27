@@ -410,7 +410,7 @@ export const App: React.FC = () => {
           onTriggerHaptic={triggerHaptic}
         />
 
-        {/* All 17 Sections Drawer Navigation */}
+        {/* All 20 Sections Drawer Navigation */}
         <AppSidebarNavigation
           isOpen={isMenuOpen}
           onClose={() => setIsMenuOpen(false)}
@@ -535,74 +535,6 @@ export const App: React.FC = () => {
                         }}
                         onTriggerHaptic={triggerHaptic}
                       />
-                    </div>
-
-                    {/* Quick App Shortcut Tiles */}
-                    <div className="w-full grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                      <button
-                        onClick={() => { triggerHaptic(10); setActiveTab('psychology'); }}
-                        className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/20 to-purple-900/30 border border-amber-400 hover:border-amber-300 hover:bg-amber-500/20 flex items-center gap-3 transition-all cursor-pointer text-left shadow-lg shadow-amber-500/10"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-amber-500/30 text-amber-300 flex items-center justify-center shrink-0">
-                          <Layers size={18} />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="text-xs font-serif font-bold text-amber-200 block truncate">Психология (+/-)</span>
-                          <span className="text-[10px] text-amber-300/80 block truncate">Плюсы и минусы</span>
-                        </div>
-                      </button>
-
-                      <button
-                        onClick={() => { triggerHaptic(10); setActiveTab('daily'); }}
-                        className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-                          <Sun size={18} />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="text-xs font-serif font-bold text-white block truncate">Прогноз</span>
-                          <span className="text-[10px] text-slate-400 block truncate">Биоритмы и энергии</span>
-                        </div>
-                      </button>
-
-                      <button
-                        onClick={() => { triggerHaptic(10); setActiveTab('chakras'); }}
-                        className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center shrink-0">
-                          <Flame size={18} />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="text-xs font-serif font-bold text-white block truncate">Чакры</span>
-                          <span className="text-[10px] text-slate-400 block truncate">7 энергоцентров</span>
-                        </div>
-                      </button>
-
-                      <button
-                        onClick={() => { triggerHaptic(10); setActiveTab('akashic'); }}
-                        className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
-                          <Scroll size={18} />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="text-xs font-serif font-bold text-white block truncate">Акаши</span>
-                          <span className="text-[10px] text-slate-400 block truncate">Память души</span>
-                        </div>
-                      </button>
-
-                      <button
-                        onClick={() => { triggerHaptic(10); setActiveTab('tarot'); }}
-                        className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
-                          <Sparkles size={18} />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="text-xs font-serif font-bold text-white block truncate">Таро</span>
-                          <span className="text-[10px] text-slate-400 block truncate">Расклады судьбы</span>
-                        </div>
-                      </button>
                     </div>
 
                     {/* Detailed Analysis Results & PDF Export */}

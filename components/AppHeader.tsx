@@ -248,7 +248,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               onOpenSidebar();
             }}
             className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-gradient-to-r from-[#151c2e] to-[#0c101d] border border-amber-500/40 text-amber-300 hover:border-amber-400 hover:bg-amber-500/20 transition-all cursor-pointer shadow-sm"
-            title="Все 17 разделов приложения"
+            title="Все 20 разделов приложения"
           >
             <Layers size={16} className="text-amber-400" />
             <span className="text-[11px] font-serif font-bold uppercase hidden md:inline">

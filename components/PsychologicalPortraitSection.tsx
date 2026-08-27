@@ -19,10 +19,6 @@ import {
   Volume2, 
   VolumeX, 
   Loader2, 
-  Server, 
-  Terminal, 
-  Copy, 
-  Check, 
   ChevronDown, 
   ChevronUp,
   Layers,
@@ -49,7 +45,7 @@ export const PsychologicalPortraitSection: React.FC<PsychologicalPortraitSection
   matrix,
   onNavigateToMatrix
 }) => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'test' | 'encyclopedia' | 'vps'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'test' | 'encyclopedia'>('profile');
   const [selectedPosition, setSelectedPosition] = useState<'day' | 'month' | 'year' | 'karmic' | 'comfort' | 'destiny'>('day');
   const [displayMode, setDisplayMode] = useState<'plus' | 'minus' | 'keys' | 'position'>('plus');
   const [selectedEncyclopediaArcana, setSelectedEncyclopediaArcana] = useState<number>(1);
@@ -67,7 +63,6 @@ export const PsychologicalPortraitSection: React.FC<PsychologicalPortraitSection
   // AI Psychological Report State
   const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
   const [aiPsychologyReport, setAiPsychologyReport] = useState<string | null>(null);
-  const [isCopiedVps, setIsCopiedVps] = useState(false);
 
   const { playingId, playAudio, stopAudio } = useGlobalAudio();
 
@@ -148,13 +143,6 @@ export const PsychologicalPortraitSection: React.FC<PsychologicalPortraitSection
     } finally {
       setIsGeneratingAiReport(false);
     }
-  };
-
-  const copyVpsCommand = () => {
-    const cmd = `curl -fsSL https://raw.githubusercontent.com/chubuk-matrix/vps-deploy/main/deploy.sh | bash`;
-    navigator.clipboard.writeText(cmd);
-    setIsCopiedVps(true);
-    setTimeout(() => setIsCopiedVps(false), 2500);
   };
 
   const filteredArcanas = useMemo(() => {
@@ -239,18 +227,6 @@ export const PsychologicalPortraitSection: React.FC<PsychologicalPortraitSection
           >
             <BookOpen size={15} />
             <span>Энциклопедия 22 Арканов</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('vps')}
-            className={`px-4 py-2.5 rounded-xl font-serif text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === 'vps'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-lg shadow-amber-500/25'
-                : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5'
-            }`}
-          >
-            <Server size={15} />
-            <span>VPS & Сервер</span>
           </button>
         </div>
       </div>
@@ -989,78 +965,6 @@ export const PsychologicalPortraitSection: React.FC<PsychologicalPortraitSection
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 4: VPS & SERVER DEPLOYMENT HUB */}
-      {activeTab === 'vps' && (
-        <div className="space-y-8">
-          <div className="bg-[#0b1020]/95 backdrop-blur-xl border border-amber-500/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-semibold">
-                <Server size={14} className="text-emerald-400" />
-                Автономный VPS & Production Сервер
-              </div>
-              <h2 className="text-xl sm:text-2xl font-serif font-bold text-white">
-                Развертывание на собственном VPS (Ubuntu / Debian / Docker)
-              </h2>
-              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-2xl">
-                Портал полностью готов к запуску в 1 команду на любом VPS (Hetzner, Timeweb, Beget, DigitalOcean, Selectel).
-                Серверный прокси Gemini API защищает ваши ключи и работает без VPN.
-              </p>
-            </div>
-
-            {/* Quick 1-liner install */}
-            <div className="p-5 rounded-2xl bg-black/60 border border-amber-500/30 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2">
-                  <Terminal size={15} />
-                  Команда быстрой установки на VPS
-                </span>
-                <button
-                  onClick={copyVpsCommand}
-                  className="px-3 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs border border-amber-500/30 flex items-center gap-1.5 cursor-pointer transition-all"
-                >
-                  {isCopiedVps ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                  <span>{isCopiedVps ? 'Скопировано!' : 'Копировать'}</span>
-                </button>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-[#050811] font-mono text-xs text-amber-300/90 overflow-x-auto border border-white/5">
-                <code>curl -fsSL https://raw.githubusercontent.com/chubuk-matrix/vps-deploy/main/deploy.sh | bash</code>
-              </div>
-            </div>
-
-            {/* Deployment Steps Architecture */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2">
-                <span className="text-sky-400 font-bold text-xs uppercase tracking-wider block">
-                  1. Docker Compose
-                </span>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Полная контейнеризация Node.js 22 + Nginx + SSL Certbot с автоматическим перезапуском при падении.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2">
-                <span className="text-emerald-400 font-bold text-xs uppercase tracking-wider block">
-                  2. Защищенный API Proxy
-                </span>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Ключ <code className="text-amber-300">GEMINI_API_KEY</code> хранится на сервере в .env и никогда не отдается клиенту.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2">
-                <span className="text-purple-400 font-bold text-xs uppercase tracking-wider block">
-                  3. PWA & Мобильные Устройства
-                </span>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Service Worker, манифест и кэш оффлайн-режима встроены и автоматически обновляются при релизах.
-                </p>
               </div>
             </div>
           </div>

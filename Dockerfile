@@ -2,11 +2,11 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Install build dependencies
+# Install dependencies for build
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
-# Copy application files and build production bundle
+# Copy source code and build Vite frontend + Express server bundle
 COPY . .
 RUN npm run build
 
@@ -18,12 +18,13 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# Install production dependencies only
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
+# Copy build artifacts
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/server.ts ./server.ts
 
 EXPOSE 3000
 
