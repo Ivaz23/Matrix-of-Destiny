@@ -27,7 +27,8 @@ import {
   Volume2,
   Coins,
   Bell,
-  Brain
+  Brain,
+  Soup
 } from 'lucide-react';
 
 export type AppNavTabId = 
@@ -35,6 +36,7 @@ export type AppNavTabId =
   | 'psychology'
   | 'meditation'
   | 'tapper'
+  | 'cooking'
   | 'wallpapers' 
   | 'chakras' 
   | 'akashic' 
@@ -98,6 +100,14 @@ const NAV_CATEGORIES: NavCategory[] = [
         icon: Coins,
         badge: 'GAME',
         color: '#facc15'
+      },
+      {
+        id: 'cooking',
+        label: 'Сакральное Кашеваривание',
+        description: 'Питание по арканам матрицы, алхимия 6 злаков и Аюрведа',
+        icon: Soup,
+        badge: 'NEW',
+        color: '#fb923c'
       },
       {
         id: 'wallpapers',

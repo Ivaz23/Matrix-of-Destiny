@@ -62,6 +62,7 @@ const PowerCalendarSection = lazy(() => import('./components/PowerCalendarSectio
 const KarmaTapperSection = lazy(() => import('./components/KarmaTapperSection'));
 const MeditationCenter = lazy(() => import('./components/MeditationCenter'));
 const PsychologicalPortraitSection = lazy(() => import('./components/PsychologicalPortraitSection').then(m => ({ default: m.PsychologicalPortraitSection })));
+const SacredCookingSection = lazy(() => import('./components/SacredCookingSection').then(m => ({ default: m.SacredCookingSection })));
 
 import { calculateMatrix } from './services/numerologyUtils';
 import { getAstrologyData } from './services/astrologyUtils';
@@ -410,7 +411,7 @@ export const App: React.FC = () => {
           onTriggerHaptic={triggerHaptic}
         />
 
-        {/* All 20 Sections Drawer Navigation */}
+        {/* All 21 Sections Drawer Navigation */}
         <AppSidebarNavigation
           isOpen={isMenuOpen}
           onClose={() => setIsMenuOpen(false)}
@@ -558,6 +559,15 @@ export const App: React.FC = () => {
                       userInput={userInput} 
                       matrix={matrix} 
                       onNavigateToMatrix={() => setActiveTab('matrix')}
+                    />
+                  </div>
+                ) : activeTab === 'cooking' ? (
+                  <div className="w-full max-w-5xl">
+                    <SacredCookingSection 
+                      userInput={userInput} 
+                      matrix={matrix} 
+                      onNavigateToMatrix={() => setActiveTab('matrix')}
+                      onNavigateToChakras={() => setActiveTab('chakras')}
                     />
                   </div>
                 ) : activeTab === 'meditation' ? (

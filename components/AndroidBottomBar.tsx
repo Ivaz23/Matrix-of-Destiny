@@ -6,8 +6,7 @@ import {
   Smartphone, 
   Layers, 
   User, 
-  Flame,
-  DownloadCloud
+  Flame
 } from 'lucide-react';
 import { AppNavTabId } from './AppSidebarNavigation';
 
@@ -51,27 +50,6 @@ export const AndroidBottomBar: React.FC<AndroidBottomBarProps> = ({
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 block no-print pointer-events-auto">
-      {/* Mini App Banner if in browser mode */}
-      {!isStandalone && (
-        <div className="max-w-md mx-auto px-3 mb-1.5 flex items-center justify-between py-1.5 px-3 rounded-xl bg-[#0d1322]/95 backdrop-blur-md border border-amber-500/30 text-[11px] shadow-xl">
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="font-serif text-amber-200 font-bold">Android App</span>
-            <span className="text-[10px] text-slate-400">PWA & APK</span>
-          </div>
-          <button
-            onClick={() => {
-              onTriggerHaptic?.(15);
-              onOpenAndroidModal();
-            }}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold text-[10px] uppercase tracking-wider hover:brightness-110 transition-all shadow-sm cursor-pointer"
-          >
-            <DownloadCloud size={12} />
-            <span>Установить</span>
-          </button>
-        </div>
-      )}
-
       {/* Main Glassmorphic Navigation Bar */}
       <nav className="bg-[#050811]/95 backdrop-blur-2xl border-t border-amber-500/25 px-2 py-1.5 safe-area-pb shadow-[0_-10px_30px_rgba(0,0,0,0.85)]">
         <div className="flex items-center justify-between max-w-lg mx-auto">
@@ -104,12 +82,12 @@ export const AndroidBottomBar: React.FC<AndroidBottomBarProps> = ({
             );
           })}
 
-          {/* Center Floating Action Button: All 20 Sections Menu */}
+          {/* Center Floating Action Button: All 21 Sections Menu */}
           <div className="relative -top-3 flex flex-col items-center px-1">
             <button
               onClick={handleMenuClick}
               className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 text-black flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.55)] border-2 border-[#050811] hover:scale-105 active:scale-95 transition-all cursor-pointer"
-              title="Открыть меню всех 20 разделов"
+              title="Открыть меню всех 21 раздела"
             >
               <Layers size={21} className="stroke-[2.5]" />
             </button>

@@ -36,6 +36,7 @@ interface AppHeaderProps {
 const TAB_TITLES: Record<AppNavTabId, { title: string; subtitle: string; icon: string }> = {
   matrix: { title: 'Матрица Судьбы', subtitle: '22 сакральных аркана души', icon: '🌟' },
   psychology: { title: 'Психологический Портрет', subtitle: 'Плюсы, минусы, тени и ключи трансформации 22 арканов', icon: '🧠' },
+  cooking: { title: 'Сакральное Кашеваривание', subtitle: 'Питание по арканам матрицы, алхимия 6 злаков и Аюрведа', icon: '🥣' },
   meditation: { title: 'Медитационный Центр', subtitle: 'Звуковые ландшафты и духовные медитации', icon: '🧘' },
   tapper: { title: 'Chubuk Kombat', subtitle: 'Тапалка кармы, майнинг и дроп $CHUBUK', icon: '🪙' },
   daily: { title: 'Прогноз Дня', subtitle: 'Космическая погода и биоритмы', icon: '🔮' },
@@ -248,7 +249,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               onOpenSidebar();
             }}
             className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-gradient-to-r from-[#151c2e] to-[#0c101d] border border-amber-500/40 text-amber-300 hover:border-amber-400 hover:bg-amber-500/20 transition-all cursor-pointer shadow-sm"
-            title="Все 20 разделов приложения"
+            title="Все 21 раздел приложения"
           >
             <Layers size={16} className="text-amber-400" />
             <span className="text-[11px] font-serif font-bold uppercase hidden md:inline">

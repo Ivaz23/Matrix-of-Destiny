@@ -54,6 +54,18 @@ export const PushNotificationModal: React.FC<PushNotificationModalProps> = ({
   const [settings, setSettings] = useState<NotificationSettings>(getNotificationSettings());
   const [testSent, setTestSent] = useState(false);
   const [isAddingReminder, setIsAddingReminder] = useState(false);
+  const [selectedGuideTab, setSelectedGuideTab] = useState<'android' | 'ios' | 'desktop'>('android');
+
+  const checkStatusNow = () => {
+    onTriggerHaptic?.(15);
+    const p = getNotificationPermission();
+    setPermission(p);
+    if (p === 'granted') {
+      const updated = { ...settings, enabled: true };
+      setSettings(updated);
+      saveNotificationSettings(updated);
+    }
+  };
 
   // New Reminder Form State
   const [newTitle, setNewTitle] = useState('');
@@ -184,14 +196,88 @@ export const PushNotificationModal: React.FC<PushNotificationModalProps> = ({
           {permission === 'unsupported' ? (
             <div className="p-3.5 rounded-2xl bg-amber-950/40 border border-amber-500/30 flex items-center gap-3 text-xs text-amber-200">
               <AlertTriangle size={18} className="text-amber-400 shrink-0" />
-              <span>Ваш браузер не поддерживает Web Notifications API. Рекомендуем установить PWA приложение на Android/Desktop.</span>
+              <span>Ваш браузер не поддерживает Web Notifications API. Рекомендуем установить PWA приложение на Android/Desktop для получения всех оповещений.</span>
             </div>
           ) : permission === 'denied' ? (
-            <div className="p-3.5 rounded-2xl bg-rose-950/40 border border-rose-500/40 flex items-start gap-3 text-xs text-rose-200">
-              <AlertTriangle size={18} className="text-rose-400 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold block">Уведомления заблокированы в браузере</span>
-                <span className="text-[11px] text-rose-300">Чтобы включить их, нажмите на иконку замочка рядом с адресом сайта и выберите «Разрешить уведомления».</span>
+            <div className="p-4 rounded-2xl bg-gradient-to-b from-rose-950/50 via-[#1a0c10] to-[#12080a] border border-rose-500/50 text-xs text-rose-200 space-y-3 shadow-xl">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2.5">
+                  <AlertTriangle size={20} className="text-rose-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-serif font-bold text-sm text-rose-100 block">Уведомления заблокированы в браузере</span>
+                    <span className="text-[11px] text-rose-300/90 leading-relaxed block mt-0.5">
+                      Браузер ограничил отправку системных сообщений. Разблокируйте их за 2 шага:
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={checkStatusNow}
+                  className="px-2.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-200 font-bold text-[10px] flex items-center gap-1 transition-all shrink-0 cursor-pointer shadow-sm"
+                  title="Проверить статус разрешения прямо сейчас"
+                >
+                  <span>🔄 Проверить</span>
+                </button>
+              </div>
+
+              {/* OS Guide Selector */}
+              <div className="pt-2 border-t border-rose-500/20 space-y-2">
+                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/50 border border-rose-500/30 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGuideTab('android')}
+                    className={`flex-1 py-1 px-2 rounded-lg font-bold transition-all ${
+                      selectedGuideTab === 'android' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    🤖 Android
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGuideTab('ios')}
+                    className={`flex-1 py-1 px-2 rounded-lg font-bold transition-all ${
+                      selectedGuideTab === 'ios' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    🍏 iPhone / iOS
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGuideTab('desktop')}
+                    className={`flex-1 py-1 px-2 rounded-lg font-bold transition-all ${
+                      selectedGuideTab === 'desktop' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    💻 ПК / Ноутбук
+                  </button>
+                </div>
+
+                {/* Tab Instructions */}
+                <div className="p-3 rounded-xl bg-black/60 border border-white/5 text-[11px] text-slate-300 space-y-1.5">
+                  {selectedGuideTab === 'android' && (
+                    <ol className="list-decimal list-inside space-y-1 text-slate-300">
+                      <li>Нажмите на <strong className="text-amber-300">значок замочка / ползунков (настройки)</strong> слева в адресной строке Chrome.</li>
+                      <li>Выберите пункт <strong className="text-amber-300">«Разрешения»</strong> или <strong className="text-amber-300">«Уведомления»</strong>.</li>
+                      <li>Переключите тумблер в положение <strong className="text-emerald-300">«Разрешено»</strong>.</li>
+                      <li>Вернитесь сюда и нажмите кнопку <strong className="text-amber-300">«🔄 Проверить»</strong> выше.</li>
+                    </ol>
+                  )}
+
+                  {selectedGuideTab === 'ios' && (
+                    <ol className="list-decimal list-inside space-y-1 text-slate-300">
+                      <li>В браузере Safari нажмите кнопку <strong className="text-amber-300">«Поделиться» (Share)</strong>.</li>
+                      <li>Выберите <strong className="text-amber-300">«На экран "Домой"» (Add to Home Screen)</strong>.</li>
+                      <li>Откройте приложение с экрана и включите уведомления.</li>
+                    </ol>
+                  )}
+
+                  {selectedGuideTab === 'desktop' && (
+                    <ol className="list-decimal list-inside space-y-1 text-slate-300">
+                      <li>Кликните на <strong className="text-amber-300">иконку настроек / замочка</strong> перед URL адресом сайта.</li>
+                      <li>Найдите строку <strong className="text-amber-300">«Уведомления»</strong> и смените «Блокировать» на <strong className="text-emerald-300">«Разрешить»</strong>.</li>
+                      <li>Нажмите кнопку <strong className="text-amber-300">«🔄 Проверить»</strong>.</li>
+                    </ol>
+                  )}
+                </div>
               </div>
             </div>
           ) : permission === 'granted' ? (
