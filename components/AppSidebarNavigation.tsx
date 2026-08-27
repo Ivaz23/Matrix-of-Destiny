@@ -26,11 +26,13 @@ import {
   Flame,
   Volume2,
   Coins,
-  Bell
+  Bell,
+  Brain
 } from 'lucide-react';
 
 export type AppNavTabId = 
   | 'matrix' 
+  | 'psychology'
   | 'meditation'
   | 'tapper'
   | 'wallpapers' 
@@ -72,6 +74,14 @@ const NAV_CATEGORIES: NavCategory[] = [
         description: 'Сакральная геометрия и 22 аркана души',
         icon: Sparkles,
         color: '#f59e0b'
+      },
+      {
+        id: 'psychology',
+        label: 'Психологический Портрет (+/-)',
+        description: 'Плюсы, минусы, ловушки тени и ключи перехода для всех 22 арканов',
+        icon: Brain,
+        badge: 'NEW',
+        color: '#38bdf8'
       },
       {
         id: 'meditation',

@@ -38,6 +38,7 @@ interface CategoryItem {
 
 const CATEGORIES: CategoryItem[] = [
   { id: 'matrix', label: 'Матрица Судьбы', shortLabel: 'Матрица', icon: '🌟', highlight: true },
+  { id: 'psychology', label: 'Психологический Портрет (+/-)', shortLabel: 'Психология (+/-)', icon: '🧠', badge: 'NEW', highlight: true },
   { id: 'meditation', label: 'Медитационный Центр', shortLabel: 'Медитации 🧘', icon: '🧘', badge: 'NEW', highlight: true },
   { id: 'tapper', label: 'Chubuk Kombat (Тапалка)', shortLabel: 'Тапалка 🪙', icon: '🪙', badge: 'PLAY', highlight: true },
   { id: 'daily', label: 'Прогноз Дня', shortLabel: 'Прогноз', icon: '🔮', badge: 'AI' },

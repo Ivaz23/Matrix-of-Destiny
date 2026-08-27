@@ -61,6 +61,7 @@ const AkashicRecordsSection = lazy(() => import('./components/AkashicRecordsSect
 const PowerCalendarSection = lazy(() => import('./components/PowerCalendarSection'));
 const KarmaTapperSection = lazy(() => import('./components/KarmaTapperSection'));
 const MeditationCenter = lazy(() => import('./components/MeditationCenter'));
+const PsychologicalPortraitSection = lazy(() => import('./components/PsychologicalPortraitSection').then(m => ({ default: m.PsychologicalPortraitSection })));
 
 import { calculateMatrix } from './services/numerologyUtils';
 import { getAstrologyData } from './services/astrologyUtils';
@@ -537,7 +538,20 @@ export const App: React.FC = () => {
                     </div>
 
                     {/* Quick App Shortcut Tiles */}
-                    <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div className="w-full grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                      <button
+                        onClick={() => { triggerHaptic(10); setActiveTab('psychology'); }}
+                        className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/20 to-purple-900/30 border border-amber-400 hover:border-amber-300 hover:bg-amber-500/20 flex items-center gap-3 transition-all cursor-pointer text-left shadow-lg shadow-amber-500/10"
+                      >
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/30 text-amber-300 flex items-center justify-center shrink-0">
+                          <Layers size={18} />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-xs font-serif font-bold text-amber-200 block truncate">Психология (+/-)</span>
+                          <span className="text-[10px] text-amber-300/80 block truncate">Плюсы и минусы</span>
+                        </div>
+                      </button>
+
                       <button
                         onClick={() => { triggerHaptic(10); setActiveTab('daily'); }}
                         className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
@@ -605,6 +619,14 @@ export const App: React.FC = () => {
                         />
                       </div>
                     )}
+                  </div>
+                ) : activeTab === 'psychology' ? (
+                  <div className="w-full max-w-5xl">
+                    <PsychologicalPortraitSection 
+                      userInput={userInput} 
+                      matrix={matrix} 
+                      onNavigateToMatrix={() => setActiveTab('matrix')}
+                    />
                   </div>
                 ) : activeTab === 'meditation' ? (
                   <div className="w-full max-w-5xl">
