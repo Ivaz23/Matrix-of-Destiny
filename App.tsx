@@ -55,12 +55,12 @@ const AncestralLineageSection = lazy(() => import('./components/AncestralLineage
 const DreamOracleSection = lazy(() => import('./components/DreamOracleSection'));
 const CitiesOfPowerSection = lazy(() => import('./components/CitiesOfPowerSection'));
 const AmbientSoundTherapy = lazy(() => import('./components/AmbientSoundTherapy'));
-const MeditationSection = lazy(() => import('./components/MeditationSection'));
 const SacredWallpapersSection = lazy(() => import('./components/SacredWallpapersSection'));
 const ChakrasSection = lazy(() => import('./components/ChakrasSection'));
 const AkashicRecordsSection = lazy(() => import('./components/AkashicRecordsSection'));
 const PowerCalendarSection = lazy(() => import('./components/PowerCalendarSection'));
 const KarmaTapperSection = lazy(() => import('./components/KarmaTapperSection'));
+const MeditationCenter = lazy(() => import('./components/MeditationCenter'));
 
 import { calculateMatrix } from './services/numerologyUtils';
 import { getAstrologyData } from './services/astrologyUtils';
@@ -154,7 +154,7 @@ export const App: React.FC = () => {
       const tabParam = params.get('tab');
       if (tabParam) {
         const validTabs: AppNavTabId[] = [
-          'matrix', 'tapper', 'wallpapers', 'chakras', 'akashic', 'powercal', 'daily',
+          'matrix', 'meditation', 'tapper', 'wallpapers', 'chakras', 'akashic', 'powercal', 'daily',
           'lunar', 'elective', 'ancestral', 'litho', 'dreams', 'cities',
           'astrology', 'compatibility', 'tarot', 'horary', 'profile'
         ];
@@ -537,7 +537,7 @@ export const App: React.FC = () => {
                     </div>
 
                     {/* Quick App Shortcut Tiles */}
-                    <div className="w-full grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                    <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       <button
                         onClick={() => { triggerHaptic(10); setActiveTab('daily'); }}
                         className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
@@ -552,24 +552,11 @@ export const App: React.FC = () => {
                       </button>
 
                       <button
-                        onClick={() => { triggerHaptic(10); setActiveTab('meditation'); }}
-                        className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/35 hover:border-amber-400 hover:bg-amber-500/15 flex items-center gap-3 transition-all cursor-pointer text-left shadow-[0_0_15px_rgba(245,158,11,0.1)]"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-amber-500/25 text-amber-300 flex items-center justify-center shrink-0">
-                          <Flame size={18} />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="text-xs font-serif font-bold text-amber-200 block truncate">Медитация</span>
-                          <span className="text-[10px] text-amber-400/80 block truncate">432 Гц & Дыхание</span>
-                        </div>
-                      </button>
-
-                      <button
                         onClick={() => { triggerHaptic(10); setActiveTab('chakras'); }}
                         className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
                       >
-                        <div className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
-                          <Activity size={18} />
+                        <div className="w-9 h-9 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center shrink-0">
+                          <Flame size={18} />
                         </div>
                         <div className="min-w-0">
                           <span className="text-xs font-serif font-bold text-white block truncate">Чакры</span>
@@ -581,7 +568,7 @@ export const App: React.FC = () => {
                         onClick={() => { triggerHaptic(10); setActiveTab('akashic'); }}
                         className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
                       >
-                        <div className="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
                           <Scroll size={18} />
                         </div>
                         <div className="min-w-0">
@@ -592,7 +579,7 @@ export const App: React.FC = () => {
 
                       <button
                         onClick={() => { triggerHaptic(10); setActiveTab('tarot'); }}
-                        className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left col-span-2 sm:col-span-1"
+                        className="p-3.5 rounded-2xl bg-[#0a0f1e] border border-amber-500/25 hover:border-amber-400 hover:bg-amber-500/10 flex items-center gap-3 transition-all cursor-pointer text-left"
                       >
                         <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
                           <Sparkles size={18} />
@@ -618,6 +605,15 @@ export const App: React.FC = () => {
                         />
                       </div>
                     )}
+                  </div>
+                ) : activeTab === 'meditation' ? (
+                  <div className="w-full max-w-5xl">
+                    <MeditationCenter 
+                      userInput={userInput} 
+                      matrix={matrix} 
+                      onNavigateToMatrix={() => setActiveTab('matrix')}
+                      onNavigateToChakras={() => setActiveTab('chakras')}
+                    />
                   </div>
                 ) : activeTab === 'daily' ? (
                   <div className="w-full max-w-5xl">
@@ -647,10 +643,6 @@ export const App: React.FC = () => {
                       onNavigateToTarot={() => setActiveTab('tarot')}
                       onNavigateToSound={() => setActiveTab('daily')}
                     />
-                  </div>
-                ) : activeTab === 'meditation' ? (
-                  <div className="w-full max-w-5xl">
-                    <MeditationSection userInput={userInput} matrix={matrix} onTriggerHaptic={triggerHaptic} />
                   </div>
                 ) : activeTab === 'wallpapers' ? (
                   <div className="w-full max-w-5xl">

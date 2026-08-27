@@ -31,8 +31,8 @@ import {
 
 export type AppNavTabId = 
   | 'matrix' 
-  | 'tapper'
   | 'meditation'
+  | 'tapper'
   | 'wallpapers' 
   | 'chakras' 
   | 'akashic' 
@@ -74,20 +74,20 @@ const NAV_CATEGORIES: NavCategory[] = [
         color: '#f59e0b'
       },
       {
+        id: 'meditation',
+        label: 'Медитационный Центр',
+        description: 'Звуковые ландшафты, 432/528 Гц и управляемые духовные медитации',
+        icon: Flame,
+        badge: 'NEW',
+        color: '#34d399'
+      },
+      {
         id: 'tapper',
         label: 'Карма-Тапалка Chubuk Kombat',
         description: 'Майнинг $CHUBUK, пассивный доход, комбо и дроп',
         icon: Coins,
         badge: 'GAME',
         color: '#facc15'
-      },
-      {
-        id: 'meditation',
-        label: 'Медитация & Звукотерапия',
-        description: 'Частоты 432/528 Гц, пранаяма-гид и медитация на арканы',
-        icon: Flame,
-        badge: '432Hz',
-        color: '#f59e0b'
       },
       {
         id: 'wallpapers',
