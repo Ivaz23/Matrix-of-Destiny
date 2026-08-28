@@ -251,23 +251,79 @@ export const FaqSection: React.FC<FaqSectionProps> = ({
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative mt-6">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/70" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Поиск вопроса (например: кармический хвост, деньги, совместимость, плюс/минус)..."
-            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-black/50 border border-amber-500/20 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 text-sm sm:text-base transition-all shadow-inner"
-          />
+        {/* Real-time Search Bar with Quick Tags & Stats */}
+        <div className="mt-6 space-y-3">
+          <div className="relative">
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchQuery(val);
+                // Auto expand first matching result for convenience
+                if (val.trim()) {
+                  const match = FAQ_DATA.find(item => 
+                    item.question.toLowerCase().includes(val.toLowerCase()) ||
+                    item.shortAnswer.toLowerCase().includes(val.toLowerCase())
+                  );
+                  if (match && !expandedIds.includes(match.id)) {
+                    setExpandedIds(prev => [...prev, match.id]);
+                  }
+                }
+              }}
+              placeholder="Поиск по вопросам и ответам в реальном времени..."
+              className="w-full pl-11 pr-24 py-3.5 rounded-2xl bg-black/60 border border-amber-500/30 text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/50 text-sm sm:text-base transition-all shadow-inner"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onTriggerHaptic?.(5);
+                    setSearchQuery('');
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white text-xs font-medium transition-colors cursor-pointer"
+                >
+                  Очистить
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Search Tag Chips */}
+          <div className="flex items-center gap-1.5 flex-wrap text-xs">
+            <span className="text-slate-400 flex items-center gap-1 text-[11px]">
+              <Sparkles size={11} className="text-amber-400" /> Быстрый поиск:
+            </span>
+            {['Хвост', 'Деньги', 'Отношения', 'Плюс/Минус', '40 лет', 'Центр', 'Совместимость'].map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => {
+                  onTriggerHaptic?.(5);
+                  setSearchQuery(tag);
+                  setSelectedCategory('all');
+                }}
+                className={`px-2.5 py-0.5 rounded-lg border text-[11px] transition-all cursor-pointer ${
+                  searchQuery.toLowerCase() === tag.toLowerCase()
+                    ? 'bg-amber-500/30 border-amber-400 text-amber-200'
+                    : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+
+          {/* Real-time search counter */}
           {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded-lg bg-white/10 text-slate-400 hover:text-white text-xs"
-            >
-              Очистить
-            </button>
+            <div className="text-xs text-amber-300/90 flex items-center gap-1.5 pt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>
+                Найдено ответов в реальном времени: <strong>{filteredFaqs.length}</strong> из {FAQ_DATA.length}
+              </span>
+            </div>
           )}
         </div>
       </div>

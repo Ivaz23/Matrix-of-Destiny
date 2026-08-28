@@ -898,18 +898,19 @@ export const chatWithChubuk = async (
 ): Promise<string> => {
   let contextPrompt = "";
   if (context?.matrix) {
-    contextPrompt += `Destination Matrix: Day ${context.matrix.day}, Soul ${context.matrix.center}, Destiny ${context.matrix.destiny}. `;
+    contextPrompt += `Destination Matrix: Day ${context.matrix.day}, Soul ${context.matrix.center}, Destiny ${context.matrix.destiny}, Money ${context.matrix.year}, Karma ${context.matrix.bottom}. `;
   }
   if (context?.astrology) {
     contextPrompt += `Astrology: Zodiac ${context.astrology.zodiacSign}, Element ${context.astrology.element}, Planet ${context.astrology.planet}. `;
   }
 
-  const systemInstruction = `Вы — Чубук, старый, мудрый странник.
+  const systemInstruction = `Вы — Чубук, старый, мудрый странник между мирами и мастер 22 Арканов Судьбы.
   ${contextPrompt}
-  Тон: теплый, глубокий, мистический. Русский язык. Кратко, но проникновенно.`;
+  Тон: глубокий, теплый, мистический, образный, поддерживающий. Русский язык. 
+  Отвечай по существу вопроса странника, связывая ответ с его энергиями Матрицы и знаками Вселенной.`;
   
   const chatHistoryStr = history.map(h => `${h.role === 'user' ? 'User' : 'Chubuk'}: ${h.text}`).join('\n');
-  const fullPrompt = `${systemInstruction}\n\nИстория:\n${chatHistoryStr}\n\nВопрос: ${message}\nОтвет:`;
+  const fullPrompt = `${systemInstruction}\n\nИстория диалога:\n${chatHistoryStr}\n\nВопрос странника: ${message}\nОтвет Чубука:`;
 
   try {
     return await retry(async () => {
@@ -920,10 +921,27 @@ export const chatWithChubuk = async (
           thinkingConfig: { thinkingLevel: ThinkingLevel.LOW }
         }
       });
-      return response.text || "Энергии шепчут о великом покое...";
-    });
-  } catch {
-    return "Звезды на мгновение скрылись за туманом. Чубук слышит твое сердце — оставайся верным своему свету.";
+      return response.text || "Энергии шепчут о великом покое и открытии новых дорог...";
+    }, 2, 1200);
+  } catch (err) {
+    console.warn("Using intelligent numerological fallback response for Chubuk chat:", err);
+    const matrix = context?.matrix;
+    const name = context?.userInput?.name || "Странник";
+    const dayArcana = matrix?.day ? `${matrix.day} Аркана` : "твоих ведущих энергий";
+    const soulArcana = matrix?.center ? `${matrix.center} Аркана` : "центра твоей души";
+    const lowerMsg = message.toLowerCase();
+
+    if (lowerMsg.includes("деньг") || lowerMsg.includes("финанс") || lowerMsg.includes("доход") || lowerMsg.includes("работ")) {
+      return `Здравствуй, ${name}. Финансовый поток твоей судьбы управляется вибрацией ${matrix?.year || 10} Аркана. Чтобы открыть денежные врата, освободись от страха нехватки и делай ставку на свое истинное мастерство. Твоя энергия расцветает тогда, когда ты делишься пользой с миром без лишнего напряжения.`;
+    }
+    if (lowerMsg.includes("отношен") || lowerMsg.includes("любов") || lowerMsg.includes("брак") || lowerMsg.includes("партнер")) {
+      return `Слушай голос сердца, ${name}. В сфере союзов свет твоего ${soulArcana} учит открытости и доверию. Кармический урок в отношениях — не растворяться в партнере, но и не закрывать сердце на замок. Настоящая гармония придет через честный диалог и уважение личных границ.`;
+    }
+    if (lowerMsg.includes("карм") || lowerMsg.includes("хвост") || lowerMsg.includes("прошл") || lowerMsg.includes("ошибк")) {
+      return `Кармический узел (${matrix?.bottom || 18} Аркан) дан тебе не как наказание, а как величайший источник скрытой силы. Переводи эту энергию в плюс: осознавай свои автоматические реакции и благодари прошлое за каждый пройденный урок.`;
+    }
+
+    return `Приветствую тебя, ${name}. Вибрации твоего ${dayArcana} и сокровенного ${soulArcana} подсказывают: ответ на твой вопрос уже созрел внутри тебя. Обрати внимание на знаки текущего момента — Судьба поддерживает твое чистое намерение. Сделай смелый шаг навстречу тому, что откликается в душе.`;
   }
 };
 
