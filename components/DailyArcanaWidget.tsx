@@ -295,7 +295,7 @@ export const DailyArcanaWidget: React.FC<DailyArcanaWidgetProps> = ({
         <div className="md:col-span-8 space-y-2.5">
           
           {/* Mode Tabs */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/40 border border-white/5 w-fit">
+          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-black/40 border border-white/5 w-full sm:w-fit">
             <button
               type="button"
               onClick={() => { onTriggerHaptic?.(5); setActiveMode('resonance'); }}

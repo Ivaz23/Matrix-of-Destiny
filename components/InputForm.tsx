@@ -21,21 +21,21 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading }) => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto card-3d p-8 md:p-10 rounded-3xl relative">
+    <div className="w-full max-w-md mx-auto card-3d p-5 sm:p-8 md:p-10 rounded-3xl relative">
       {/* Decorative Glow */}
       <div className="absolute -top-10 -right-10 w-20 h-20 bg-amber-500/20 blur-[40px] rounded-full pointer-events-none"></div>
       
-      <h2 className="text-3xl font-serif text-center text-amber-100 mb-8 drop-shadow-md">
+      <h2 className="text-2xl sm:text-3xl font-serif text-center text-amber-100 mb-6 sm:mb-8 drop-shadow-md">
         Данные Души
       </h2>
       
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         <div className="group">
-          <label className="block text-xs font-bold text-amber-500/80 uppercase tracking-widest mb-2 ml-1 group-focus-within:text-amber-400 transition-colors">Имя</label>
+          <label className="block text-xs font-bold text-amber-500/80 uppercase tracking-widest mb-1.5 ml-1 group-focus-within:text-amber-400 transition-colors">Имя</label>
           <input
             type="text"
             required
-            className="w-full input-3d rounded-xl px-5 py-4 text-white focus:outline-none placeholder-slate-600 transition-all"
+            className="w-full input-3d rounded-xl px-4 sm:px-5 py-3.5 sm:py-4 text-white focus:outline-none placeholder-slate-600 transition-all text-sm sm:text-base"
             placeholder="Введите имя"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -43,26 +43,26 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading }) => {
         </div>
 
         <div className="group">
-          <label className="block text-xs font-bold text-amber-500/80 uppercase tracking-widest mb-2 ml-1 group-focus-within:text-amber-400 transition-colors">Дата Рождения</label>
+          <label className="block text-xs font-bold text-amber-500/80 uppercase tracking-widest mb-1.5 ml-1 group-focus-within:text-amber-400 transition-colors">Дата Рождения</label>
           <input
             type="date"
             required
-            className="w-full input-3d rounded-xl px-5 py-4 text-white focus:outline-none placeholder-slate-600 transition-all [color-scheme:dark]"
+            className="w-full input-3d rounded-xl px-4 sm:px-5 py-3.5 sm:py-4 text-white focus:outline-none placeholder-slate-600 transition-all [color-scheme:dark] text-sm sm:text-base"
             value={formData.birthDate}
             onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-amber-500/80 uppercase tracking-widest mb-2 ml-1">Пол</label>
-          <div className="grid grid-cols-2 gap-4">
+          <label className="block text-xs font-bold text-amber-500/80 uppercase tracking-widest mb-1.5 ml-1">Пол</label>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <button
               type="button"
               onClick={() => setFormData({ ...formData, gender: 'male' })}
-              className={`py-4 rounded-xl border transition-all duration-300 font-serif ${
+              className={`py-3 sm:py-4 rounded-xl border transition-all duration-300 font-serif text-sm sm:text-base ${
                 formData.gender === 'male'
-                  ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.4)]'
-                  : 'bg-slate-900/40 border-slate-700 text-slate-500 hover:border-slate-500 hover:text-slate-300'
+                  ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.4)] font-bold'
+                  : 'bg-slate-900/40 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300'
               }`}
             >
               Мужской
@@ -70,10 +70,10 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading }) => {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, gender: 'female' })}
-              className={`py-4 rounded-xl border transition-all duration-300 font-serif ${
+              className={`py-3 sm:py-4 rounded-xl border transition-all duration-300 font-serif text-sm sm:text-base ${
                 formData.gender === 'female'
-                  ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.4)]'
-                  : 'bg-slate-900/40 border-slate-700 text-slate-500 hover:border-slate-500 hover:text-slate-300'
+                  ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.4)] font-bold'
+                  : 'bg-slate-900/40 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300'
               }`}
             >
               Женский
@@ -84,7 +84,7 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading }) => {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full mt-8 btn-3d font-bold text-lg py-5 rounded-xl uppercase tracking-widest transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="w-full mt-6 sm:mt-8 btn-3d font-bold text-base sm:text-lg py-4 sm:py-5 rounded-xl uppercase tracking-widest transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-3">

@@ -364,7 +364,7 @@ export const App: React.FC = () => {
 
   return (
     <AudioProvider>
-      <div className="min-h-screen font-sans bg-[#03060c] text-slate-100 flex flex-col selection:bg-amber-500 selection:text-black">
+      <div className="min-h-screen w-full overflow-x-hidden font-sans bg-[#03060c] text-slate-100 flex flex-col selection:bg-amber-500 selection:text-black">
         {/* Toast Notification */}
         <div className={`fixed top-20 right-4 sm:right-6 z-[80] bg-emerald-950/95 text-emerald-100 px-4 py-2.5 rounded-2xl backdrop-blur-xl border border-emerald-500/40 shadow-2xl transition-all duration-300 flex items-center gap-2 text-xs font-medium ${toastMessage ? 'translate-y-0 opacity-100' : '-translate-y-6 opacity-0 pointer-events-none'}`}>
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -449,31 +449,31 @@ export const App: React.FC = () => {
                   <div className="w-full max-w-5xl flex flex-col items-center space-y-6">
                     {/* Active Profile Status Header Bar */}
                     {userInput && matrix ? (
-                      <div className="w-full p-4 rounded-3xl bg-gradient-to-r from-[#0e1628] via-[#090e1c] to-[#0e1628] border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-serif font-black text-xl flex items-center justify-center shrink-0">
+                      <div className="w-full p-3 sm:p-4 rounded-3xl bg-gradient-to-r from-[#0e1628] via-[#090e1c] to-[#0e1628] border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-serif font-black text-lg sm:text-xl flex items-center justify-center shrink-0">
                             {matrix.center}
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-serif font-bold text-white text-base">{userInput.name}</h3>
-                              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-serif font-bold text-white text-sm sm:text-base truncate">{userInput.name}</h3>
+                              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold shrink-0">
                                 {userInput.birthDate}
                               </span>
                             </div>
-                            <p className="text-xs text-slate-400">
-                              Центр: <strong className="text-amber-300">{matrix.center} Аркан</strong> • Предназначение: <strong className="text-amber-300">{matrix.destiny} Аркан</strong> • Небо/Земля: <strong className="text-amber-300">{matrix.sky}/{matrix.earth}</strong>
+                            <p className="text-[11px] sm:text-xs text-slate-400 truncate">
+                              Центр: <strong className="text-amber-300">{matrix.center}</strong> • Предназначение: <strong className="text-amber-300">{matrix.destiny}</strong> • Небо/Земля: <strong className="text-amber-300">{matrix.sky}/{matrix.earth}</strong>
                             </p>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-end flex-wrap">
                           <button
                             onClick={() => {
                               triggerHaptic(10);
                               setIsOnboardingOpen(true);
                             }}
-                            className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 text-xs font-serif font-bold flex items-center gap-1.5 cursor-pointer"
+                            className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 text-xs font-serif font-bold flex items-center gap-1 cursor-pointer"
                             title="Открыть обучение по значениям Матрицы"
                           >
                             <Compass size={13} />
@@ -485,10 +485,10 @@ export const App: React.FC = () => {
                               triggerHaptic(10);
                               setActiveTab('wallpapers');
                             }}
-                            className="px-3 py-1.5 rounded-xl bg-purple-950/40 border border-purple-500/40 text-purple-300 hover:bg-purple-900/50 text-xs font-serif font-bold flex items-center gap-1.5 cursor-pointer"
+                            className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-purple-950/40 border border-purple-500/40 text-purple-300 hover:bg-purple-900/50 text-xs font-serif font-bold flex items-center gap-1 cursor-pointer"
                           >
                             <Smartphone size={13} />
-                            <span>Обои HD</span>
+                            <span>Обои</span>
                           </button>
 
                           <button
@@ -496,7 +496,7 @@ export const App: React.FC = () => {
                               triggerHaptic(10);
                               setActiveTab('daily');
                             }}
-                            className="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500 hover:text-black text-xs font-serif font-bold flex items-center gap-1.5 cursor-pointer"
+                            className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500 hover:text-black text-xs font-serif font-bold flex items-center gap-1 cursor-pointer"
                           >
                             <Sun size={13} />
                             <span>Прогноз</span>
@@ -506,12 +506,12 @@ export const App: React.FC = () => {
                     ) : null}
 
                     {/* Calculation & Matrix Visual Card Container */}
-                    <div ref={calculatorRef} className="w-full grid md:grid-cols-2 gap-6 items-start">
+                    <div ref={calculatorRef} className="w-full grid md:grid-cols-2 gap-4 sm:gap-6 items-start">
                       <div className="w-full">
                         <InputForm onSubmit={handleCalculate} isLoading={loading} />
                       </div>
                       
-                      <div className="w-full flex items-center justify-center min-h-[380px] p-4 rounded-3xl bg-[#070b16]/70 border border-white/5 shadow-inner">
+                      <div className="w-full flex flex-col items-center justify-start p-3 sm:p-5 rounded-3xl bg-[#070b16]/70 border border-white/5 shadow-inner">
                         {matrix ? (
                           <MatrixVisual 
                             matrix={matrix} 
@@ -519,7 +519,7 @@ export const App: React.FC = () => {
                             onOpenGuide={() => setIsOnboardingOpen(true)}
                           />
                         ) : (
-                          <div className="flex flex-col items-center justify-center text-center p-8 opacity-40 space-y-2">
+                          <div className="flex flex-col items-center justify-center text-center p-8 opacity-40 space-y-2 min-h-[280px]">
                             <Sparkles size={36} className="text-amber-400 animate-pulse" />
                             <p className="font-serif text-sm text-slate-300">Введите дату рождения для построения 22 арканов матрицы</p>
                           </div>

@@ -140,174 +140,175 @@ const MatrixVisual: React.FC<MatrixVisualProps> = ({ matrix, userInput, onOpenGu
   };
 
   return (
-    <div className="relative w-full max-w-[500px] aspect-square mx-auto my-8 animate-fade-in group print:my-4">
+    <div className="w-full max-w-[480px] mx-auto flex flex-col items-center animate-fade-in group print:my-4">
       
-      {/* 3D Tilt Container - Pure CSS for simplicity */}
-      <div className="w-full h-full transition-transform duration-500" style={{ transformStyle: 'preserve-3d' }}>
-        
-        <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-visible print:drop-shadow-none">
-          <defs>
-            {/* 3D Sphere Gradients */}
-            <radialGradient id="sphereGold" cx="30%" cy="30%" r="70%">
-              <stop offset="0%" stopColor="#fffbeb" />
-              <stop offset="50%" stopColor="#fbbf24" />
-              <stop offset="100%" stopColor="#b45309" />
-            </radialGradient>
-            <radialGradient id="spherePurple" cx="30%" cy="30%" r="70%">
-              <stop offset="0%" stopColor="#e9d5ff" />
-              <stop offset="50%" stopColor="#a855f7" />
-              <stop offset="100%" stopColor="#581c87" />
-            </radialGradient>
-            <radialGradient id="sphereRed" cx="30%" cy="30%" r="70%">
-              <stop offset="0%" stopColor="#fecaca" />
-              <stop offset="50%" stopColor="#ef4444" />
-              <stop offset="100%" stopColor="#7f1d1d" />
-            </radialGradient>
+      {/* 3D Tilt SVG Container with 1:1 Aspect Ratio */}
+      <div className="relative w-full max-w-[400px] aspect-square mx-auto flex items-center justify-center p-1 sm:p-2">
+        <div className="w-full h-full transition-transform duration-500" style={{ transformStyle: 'preserve-3d' }}>
+          <svg viewBox="-30 -30 460 460" className="w-full h-full drop-shadow-[0_15px_35px_rgba(0,0,0,0.5)] overflow-visible print:drop-shadow-none">
+            <defs>
+              {/* 3D Sphere Gradients */}
+              <radialGradient id="sphereGold" cx="30%" cy="30%" r="70%">
+                <stop offset="0%" stopColor="#fffbeb" />
+                <stop offset="50%" stopColor="#fbbf24" />
+                <stop offset="100%" stopColor="#b45309" />
+              </radialGradient>
+              <radialGradient id="spherePurple" cx="30%" cy="30%" r="70%">
+                <stop offset="0%" stopColor="#e9d5ff" />
+                <stop offset="50%" stopColor="#a855f7" />
+                <stop offset="100%" stopColor="#581c87" />
+              </radialGradient>
+              <radialGradient id="sphereRed" cx="30%" cy="30%" r="70%">
+                <stop offset="0%" stopColor="#fecaca" />
+                <stop offset="50%" stopColor="#ef4444" />
+                <stop offset="100%" stopColor="#7f1d1d" />
+              </radialGradient>
+              
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              
+              <filter id="hoverGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="8" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
             
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-            
-            <filter id="hoverGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="8" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
-          
-          <style>{`
-            .pop-effect {
-              transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-              transform-box: fill-box;
-              transform-origin: center;
-            }
-            .pop-active {
-              transform: scale(1.4) translateZ(50px);
-              filter: brightness(1.2);
-            }
-          `}</style>
+            <style>{`
+              .pop-effect {
+                transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                transform-box: fill-box;
+                transform-origin: center;
+              }
+              .pop-active {
+                transform: scale(1.35) translateZ(40px);
+                filter: brightness(1.2);
+              }
+            `}</style>
 
-          {/* Background Geometry */}
-          <rect x="50" y="50" width="300" height="300" transform="rotate(45 200 200)" fill="none" strokeWidth="1" className="stroke-white/20 print:stroke-black" />
-          <rect x="50" y="50" width="300" height="300" fill="none" strokeWidth="1" className="stroke-white/10 print:stroke-black" />
+            {/* Background Geometry */}
+            <rect x="50" y="50" width="300" height="300" transform="rotate(45 200 200)" fill="none" strokeWidth="1" className="stroke-white/20 print:stroke-black" />
+            <rect x="50" y="50" width="300" height="300" fill="none" strokeWidth="1" className="stroke-white/10 print:stroke-black" />
 
-          {/* Connecting Lines with Glow */}
-          <g className="stroke-amber-500/40 print:stroke-black" strokeWidth="1.5" filter="url(#glow)">
-            <line x1="200" y1="20" x2="200" y2="380" />
-            <line x1="20" y1="200" x2="380" y2="200" />
-            <line x1="72" y1="72" x2="328" y2="328" />
-            <line x1="328" y1="72" x2="72" y2="328" />
-          </g>
+            {/* Connecting Lines with Glow */}
+            <g className="stroke-amber-500/40 print:stroke-black" strokeWidth="1.5" filter="url(#glow)">
+              <line x1="200" y1="20" x2="200" y2="380" />
+              <line x1="20" y1="200" x2="380" y2="200" />
+              <line x1="72" y1="72" x2="328" y2="328" />
+              <line x1="328" y1="72" x2="72" y2="328" />
+            </g>
 
-          {/* --- Karmic Tail Segment Visualizer --- */}
-          <g className="karmic-tail-track">
-            {/* Glowing connecting ribbon for the 3 lower arcana */}
-            <path 
-              d="M 200 350 L 200 255" 
-              stroke="url(#sphereRed)" 
-              strokeWidth="4" 
-              strokeLinecap="round"
-              strokeDasharray="4 2"
-              className="opacity-60 animate-pulse" 
-            />
-            {/* Karmic Tail Bracket */}
-            <path 
-              d="M 225 350 Q 235 305 225 255" 
-              fill="none" 
-              stroke="#ef4444" 
-              strokeWidth="1.5" 
-              strokeDasharray="2 2"
-              className="opacity-70"
-            />
-            <text x="240" y="305" dy="0.35em" fontSize="9" fontWeight="bold" className="fill-red-400 font-serif tracking-wider uppercase">Хвост</text>
-          </g>
+            {/* --- Karmic Tail Segment Visualizer --- */}
+            <g className="karmic-tail-track">
+              {/* Glowing connecting ribbon for the 3 lower arcana */}
+              <path 
+                d="M 200 350 L 200 255" 
+                stroke="url(#sphereRed)" 
+                strokeWidth="4" 
+                strokeLinecap="round"
+                strokeDasharray="4 2"
+                className="opacity-60 animate-pulse" 
+              />
+              {/* Karmic Tail Bracket */}
+              <path 
+                d="M 225 350 Q 235 305 225 255" 
+                fill="none" 
+                stroke="#ef4444" 
+                strokeWidth="1.5" 
+                strokeDasharray="2 2"
+                className="opacity-70"
+              />
+              <text x="240" y="305" dy="0.35em" fontSize="9" fontWeight="bold" className="fill-red-400 font-serif tracking-wider uppercase">Хвост</text>
+            </g>
 
-          {/* --- Interactive 3D Spheres --- */}
+            {/* --- Interactive 3D Spheres --- */}
 
-          {/* Central (Comfort Zone) */}
-          <g 
-            onClick={() => handlePointClick('center', matrix.center)} 
-            className={`cursor-pointer group/node pop-effect ${animatingId === 'center' ? 'pop-active' : ''}`}
-          >
-            {/* Pulsing Aura */}
-            <circle cx="200" cy="200" r="35" className="fill-amber-500/20 blur-md group-hover/node:fill-amber-500/50 transition-all duration-300 group-hover/node:animate-pulse" />
-            <circle cx="200" cy="200" r="45" className="fill-transparent stroke-amber-500/10 stroke-1 group-hover/node:stroke-amber-500/40 group-hover/node:scale-110 transition-all duration-500" style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
-            
-            {/* Core Sphere */}
-            <circle cx="200" cy="200" r="28" className="fill-[url(#sphereGold)] shadow-inner print:fill-white print:stroke-black print:stroke-2 group-hover/node:filter-url(#hoverGlow)" />
-            <text x="200" y="200" dy="0.35em" textAnchor="middle" fontSize="18" fontWeight="bold" fontFamily="Cinzel" className="fill-amber-950 shadow-sm print:fill-black pointer-events-none">{matrix.center}</text>
-          </g>
+            {/* Central (Comfort Zone) */}
+            <g 
+              onClick={() => handlePointClick('center', matrix.center)} 
+              className={`cursor-pointer group/node pop-effect ${animatingId === 'center' ? 'pop-active' : ''}`}
+            >
+              {/* Pulsing Aura */}
+              <circle cx="200" cy="200" r="35" className="fill-amber-500/20 blur-md group-hover/node:fill-amber-500/50 transition-all duration-300 group-hover/node:animate-pulse" />
+              <circle cx="200" cy="200" r="45" className="fill-transparent stroke-amber-500/10 stroke-1 group-hover/node:stroke-amber-500/40 group-hover/node:scale-110 transition-all duration-500" style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
+              
+              {/* Core Sphere */}
+              <circle cx="200" cy="200" r="28" className="fill-[url(#sphereGold)] shadow-inner print:fill-white print:stroke-black print:stroke-2 group-hover/node:filter-url(#hoverGlow)" />
+              <text x="200" y="200" dy="0.35em" textAnchor="middle" fontSize="18" fontWeight="bold" fontFamily="Cinzel" className="fill-amber-950 shadow-sm print:fill-black pointer-events-none">{matrix.center}</text>
+            </g>
 
-          {/* Top (Month) */}
-          <g 
-            onClick={() => handlePointClick('month', matrix.month)}
-            className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'month' ? 'pop-active' : ''}`}
-          >
-            <circle cx="200" cy="50" r="25" className="fill-purple-500/20 blur-md group-hover/node:fill-purple-500/40 group-hover/node:animate-pulse" />
-            <circle cx="200" cy="50" r="22" className="fill-[url(#spherePurple)] print:fill-white print:stroke-black print:stroke-2 group-hover/node:filter-url(#hoverGlow)" />
-            <text x="200" y="50" dy="0.35em" textAnchor="middle" fontSize="14" fontWeight="bold" className="fill-purple-950 print:fill-black pointer-events-none">{matrix.month}</text>
-            <text x="200" y="20" textAnchor="middle" fontSize="10" className="uppercase tracking-widest font-bold fill-[#a855f7] print:fill-black opacity-0 group-hover/node:opacity-100 transition-opacity translate-y-2 group-hover/node:translate-y-0 duration-300">Талант</text>
-          </g>
+            {/* Top (Month) */}
+            <g 
+              onClick={() => handlePointClick('month', matrix.month)}
+              className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'month' ? 'pop-active' : ''}`}
+            >
+              <circle cx="200" cy="50" r="25" className="fill-purple-500/20 blur-md group-hover/node:fill-purple-500/40 group-hover/node:animate-pulse" />
+              <circle cx="200" cy="50" r="22" className="fill-[url(#spherePurple)] print:fill-white print:stroke-black print:stroke-2 group-hover/node:filter-url(#hoverGlow)" />
+              <text x="200" y="50" dy="0.35em" textAnchor="middle" fontSize="14" fontWeight="bold" className="fill-purple-950 print:fill-black pointer-events-none">{matrix.month}</text>
+              <text x="200" y="16" textAnchor="middle" fontSize="10" className="uppercase tracking-widest font-bold fill-[#a855f7] print:fill-black opacity-80 sm:opacity-0 group-hover/node:opacity-100 transition-opacity translate-y-0 duration-300">Талант</text>
+            </g>
 
-          {/* Right (Year) */}
-          <g 
-            onClick={() => handlePointClick('year', matrix.year)}
-            className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'year' ? 'pop-active' : ''}`}
-          >
-            <circle cx="350" cy="200" r="25" className="fill-red-500/20 blur-md group-hover/node:fill-red-500/40 group-hover/node:animate-pulse" />
-            <circle cx="350" cy="200" r="22" className="fill-[url(#sphereRed)] print:fill-white print:stroke-black print:stroke-2 group-hover/node:filter-url(#hoverGlow)" />
-            <text x="350" y="200" dy="0.35em" textAnchor="middle" fontSize="14" fontWeight="bold" className="fill-red-950 print:fill-black pointer-events-none">{matrix.year}</text>
-            <text x="350" y="238" textAnchor="middle" fontSize="10" className="uppercase tracking-widest font-bold fill-[#ef4444] print:fill-black opacity-0 group-hover/node:opacity-100 transition-opacity translate-y-2 group-hover/node:translate-y-0 duration-300">Материя</text>
-          </g>
+            {/* Right (Year) */}
+            <g 
+              onClick={() => handlePointClick('year', matrix.year)}
+              className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'year' ? 'pop-active' : ''}`}
+            >
+              <circle cx="350" cy="200" r="25" className="fill-red-500/20 blur-md group-hover/node:fill-red-500/40 group-hover/node:animate-pulse" />
+              <circle cx="350" cy="200" r="22" className="fill-[url(#sphereRed)] print:fill-white print:stroke-black print:stroke-2 group-hover/node:filter-url(#hoverGlow)" />
+              <text x="350" y="200" dy="0.35em" textAnchor="middle" fontSize="14" fontWeight="bold" className="fill-red-950 print:fill-black pointer-events-none">{matrix.year}</text>
+              <text x="350" y="238" textAnchor="middle" fontSize="10" className="uppercase tracking-widest font-bold fill-[#ef4444] print:fill-black opacity-80 sm:opacity-0 group-hover/node:opacity-100 transition-opacity translate-y-0 duration-300">Материя</text>
+            </g>
 
-          {/* Left (Day) */}
-          <g 
-            onClick={() => handlePointClick('day', matrix.day)}
-            className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'day' ? 'pop-active' : ''}`}
-          >
-            <circle cx="50" cy="200" r="25" className="fill-purple-500/20 blur-md group-hover/node:fill-purple-500/40 group-hover/node:animate-pulse" />
-            <circle cx="50" cy="200" r="22" className="fill-[url(#spherePurple)] print:fill-white print:stroke-black print:stroke-2 group-hover/node:filter-url(#hoverGlow)" />
-            <text x="50" y="200" dy="0.35em" textAnchor="middle" fontSize="14" fontWeight="bold" className="fill-purple-950 print:fill-black pointer-events-none">{matrix.day}</text>
-            <text x="50" y="165" textAnchor="middle" fontSize="10" className="uppercase tracking-widest font-bold fill-[#a855f7] print:fill-black opacity-0 group-hover/node:opacity-100 transition-opacity translate-y-2 group-hover/node:translate-y-0 duration-300">Я</text>
-          </g>
+            {/* Left (Day) */}
+            <g 
+              onClick={() => handlePointClick('day', matrix.day)}
+              className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'day' ? 'pop-active' : ''}`}
+            >
+              <circle cx="50" cy="200" r="25" className="fill-purple-500/20 blur-md group-hover/node:fill-purple-500/40 group-hover/node:animate-pulse" />
+              <circle cx="50" cy="200" r="22" className="fill-[url(#spherePurple)] print:fill-white print:stroke-black print:stroke-2 group-hover/node:filter-url(#hoverGlow)" />
+              <text x="50" y="200" dy="0.35em" textAnchor="middle" fontSize="14" fontWeight="bold" className="fill-purple-950 print:fill-black pointer-events-none">{matrix.day}</text>
+              <text x="50" y="165" textAnchor="middle" fontSize="10" className="uppercase tracking-widest font-bold fill-[#a855f7] print:fill-black opacity-80 sm:opacity-0 group-hover/node:opacity-100 transition-opacity translate-y-0 duration-300">Я</text>
+            </g>
 
-          {/* --- Karmic Tail Nodes (Three Lower Arcana) --- */}
+            {/* --- Karmic Tail Nodes (Three Lower Arcana) --- */}
 
-          {/* 1. Karmic Inflow Node D2 (Entrance to Money/Love) */}
-          <g 
-            onClick={() => handlePointClick('karmic_in', dIn)}
-            className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'karmic_in' ? 'pop-active' : ''}`}
-          >
-            <circle cx="200" cy="255" r="16" className="fill-rose-950 stroke-rose-500 stroke-1 shadow-md group-hover/node:fill-rose-900 group-hover/node:stroke-rose-400 transition-all" />
-            <text x="200" y="255" dy="0.35em" textAnchor="middle" fontSize="11" fontWeight="bold" className="fill-rose-200 pointer-events-none">{dIn}</text>
-            <text x="175" y="255" dy="0.35em" textAnchor="end" fontSize="8" className="fill-rose-400/80 uppercase font-mono tracking-tight opacity-0 group-hover/node:opacity-100 transition-opacity">Вход</text>
-          </g>
+            {/* 1. Karmic Inflow Node D2 (Entrance to Money/Love) */}
+            <g 
+              onClick={() => handlePointClick('karmic_in', dIn)}
+              className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'karmic_in' ? 'pop-active' : ''}`}
+            >
+              <circle cx="200" cy="255" r="16" className="fill-rose-950 stroke-rose-500 stroke-1 shadow-md group-hover/node:fill-rose-900 group-hover/node:stroke-rose-400 transition-all" />
+              <text x="200" y="255" dy="0.35em" textAnchor="middle" fontSize="11" fontWeight="bold" className="fill-rose-200 pointer-events-none">{dIn}</text>
+              <text x="175" y="255" dy="0.35em" textAnchor="end" fontSize="8" className="fill-rose-400/80 uppercase font-mono tracking-tight opacity-0 group-hover/node:opacity-100 transition-opacity">Вход</text>
+            </g>
 
-          {/* 2. Karmic Mid Node D1 (Intermediate Karmic Node) */}
-          <g 
-            onClick={() => handlePointClick('karmic_mid', dMid)}
-            className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'karmic_mid' ? 'pop-active' : ''}`}
-          >
-            <circle cx="200" cy="305" r="18" className="fill-rose-900 stroke-red-500 stroke-1.5 shadow-md group-hover/node:fill-rose-800 group-hover/node:stroke-red-400 transition-all" />
-            <text x="200" y="305" dy="0.35em" textAnchor="middle" fontSize="12" fontWeight="bold" className="fill-rose-100 pointer-events-none">{dMid}</text>
-            <text x="172" y="305" dy="0.35em" textAnchor="end" fontSize="8" className="fill-rose-400/80 uppercase font-mono tracking-tight opacity-0 group-hover/node:opacity-100 transition-opacity">Узел</text>
-          </g>
+            {/* 2. Karmic Mid Node D1 (Intermediate Karmic Node) */}
+            <g 
+              onClick={() => handlePointClick('karmic_mid', dMid)}
+              className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'karmic_mid' ? 'pop-active' : ''}`}
+            >
+              <circle cx="200" cy="305" r="18" className="fill-rose-900 stroke-red-500 stroke-1.5 shadow-md group-hover/node:fill-rose-800 group-hover/node:stroke-red-400 transition-all" />
+              <text x="200" y="305" dy="0.35em" textAnchor="middle" fontSize="12" fontWeight="bold" className="fill-rose-100 pointer-events-none">{dMid}</text>
+              <text x="172" y="305" dy="0.35em" textAnchor="end" fontSize="8" className="fill-rose-400/80 uppercase font-mono tracking-tight opacity-0 group-hover/node:opacity-100 transition-opacity">Узел</text>
+            </g>
 
-          {/* 3. Karmic Bottom Node D (Main Past Life Debt) */}
-          <g 
-            onClick={() => handlePointClick('bottom', matrix.bottom)}
-            className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'bottom' ? 'pop-active' : ''}`}
-          >
-            <circle cx="200" cy="355" r="24" className="fill-red-500/20 blur-md group-hover/node:fill-red-500/40 group-hover/node:animate-pulse" />
-            <circle cx="200" cy="355" r="21" className="fill-[url(#sphereRed)] print:fill-white print:stroke-black print:stroke-2 group-hover/node:filter-url(#hoverGlow)" />
-            <text x="200" y="355" dy="0.35em" textAnchor="middle" fontSize="14" fontWeight="bold" className="fill-red-950 print:fill-black pointer-events-none">{matrix.bottom}</text>
-            <text x="200" y="388" textAnchor="middle" fontSize="10" className="uppercase tracking-widest font-bold fill-[#ef4444] print:fill-black opacity-0 group-hover/node:opacity-100 transition-opacity translate-y-2 group-hover/node:translate-y-0 duration-300">Основа</text>
-          </g>
+            {/* 3. Karmic Bottom Node D (Main Past Life Debt) */}
+            <g 
+              onClick={() => handlePointClick('bottom', matrix.bottom)}
+              className={`cursor-pointer group/node hover:scale-110 pop-effect ${animatingId === 'bottom' ? 'pop-active' : ''}`}
+            >
+              <circle cx="200" cy="355" r="24" className="fill-red-500/20 blur-md group-hover/node:fill-red-500/40 group-hover/node:animate-pulse" />
+              <circle cx="200" cy="355" r="21" className="fill-[url(#sphereRed)] print:fill-white print:stroke-black print:stroke-2 group-hover/node:filter-url(#hoverGlow)" />
+              <text x="200" y="355" dy="0.35em" textAnchor="middle" fontSize="14" fontWeight="bold" className="fill-red-950 print:fill-black pointer-events-none">{matrix.bottom}</text>
+              <text x="200" y="394" textAnchor="middle" fontSize="10" className="uppercase tracking-widest font-bold fill-[#ef4444] print:fill-black opacity-80 sm:opacity-0 group-hover/node:opacity-100 transition-opacity translate-y-0 duration-300">Основа</text>
+            </g>
 
-        </svg>
+          </svg>
+        </div>
       </div>
 
       {/* Karmic Tail Sacred Visual Banner & Summary */}
