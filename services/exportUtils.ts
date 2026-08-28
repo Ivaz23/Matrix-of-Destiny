@@ -32,6 +32,7 @@ import { calculateLithotherapyProfile } from './lithotherapyUtils';
 import { calculateLunarData } from './lunarUtils';
 import { findBestFavorableDates } from './electiveUtils';
 import { calculateCityPowerProfile } from './cityPowerUtils';
+import { ArcanaPsychologyProfile } from './arcanaPsychologyData';
 
 export const downloadFullAudioAnalysis = async (
   type: 'individual' | 'compatibility',
@@ -3314,6 +3315,427 @@ export const exportPowerCalendarPdf = async ({
     }
   }
 };
+
+export const exportLifespanPdf = async ({
+  userInput,
+  matrix,
+  lifespanData,
+  tarotReading,
+  aiReport,
+  filename
+}: {
+  userInput?: UserInput | null;
+  matrix?: MatrixNumbers | null;
+  lifespanData: {
+    vitalityScore: number;
+    baseLongevityMin: number;
+    baseLongevityMax: number;
+    currentAge: number;
+    currentPhaseName: string;
+    seasons: { name: string; range: string; arcana: number; desc: string }[];
+    turningPoints: { age: number; task: string }[];
+    element: string;
+    vulnerableZone: string;
+    vitalityFactors: { name: string; val: number; color: string }[];
+  };
+  tarotReading?: {
+    id: number;
+    name: string;
+    positionTitle: string;
+    meaning: string;
+    timeHint: string;
+  }[] | null;
+  aiReport?: string | null;
+  filename?: string;
+}) => {
+  const userName = userInput?.name || 'Странник';
+  const birthDate = userInput?.birthDate || 'Не указана';
+
+  const container = document.createElement('div');
+  container.id = 'pdf-lifespan-container';
+  container.style.position = 'fixed';
+  container.style.top = '-99999px';
+  container.style.left = '-99999px';
+  container.style.width = '840px';
+  container.style.backgroundColor = '#070b18';
+  container.style.color = '#e2e8f0';
+  container.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  container.style.padding = '36px';
+  container.style.boxSizing = 'border-box';
+  container.style.zIndex = '-9999';
+
+  container.innerHTML = `
+    <div style="border: 2px solid #b48811; padding: 32px; border-radius: 24px; background: linear-gradient(180deg, #10162a 0%, #070b18 100%); position: relative; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.9);">
+      
+      <!-- Header -->
+      <div style="text-align: center; border-bottom: 1px solid rgba(255, 215, 0, 0.3); padding-bottom: 24px; margin-bottom: 24px;">
+        <div style="display: inline-block; width: 56px; height: 56px; line-height: 56px; border-radius: 16px; background: linear-gradient(135deg, #ffd700, #b48811); color: #000; font-weight: 800; font-size: 28px; font-family: 'Cinzel', serif; margin-bottom: 12px; box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);">⏳</div>
+        <h1 style="font-family: 'Cinzel', serif; font-size: 25px; color: #ffd700; letter-spacing: 3px; margin: 0; text-transform: uppercase;">САКРАЛЬНЫЙ ХРОНОС И СРОКИ СОБЫТИЙ</h1>
+        <p style="font-size: 12px; color: #cbd5e1; letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; font-weight: 600;">
+          Коридор Долголетия • Биологические Сезоны • Расклад на Сроки • Для: ${userName}
+        </p>
+      </div>
+
+      <!-- User Profile Box -->
+      <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 215, 0, 0.25); border-radius: 16px; padding: 18px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center;">
+        <div>
+          <span style="font-size: 10px; color: #b48811; text-transform: uppercase; font-weight: bold; display: block;">Странник</span>
+          <span style="font-size: 16px; color: #ffffff; font-weight: 700;">${userName}</span>
+        </div>
+        <div>
+          <span style="font-size: 10px; color: #b48811; text-transform: uppercase; font-weight: bold; display: block;">Дата рождения</span>
+          <span style="font-size: 16px; color: #ffffff; font-weight: 700;">${birthDate}</span>
+        </div>
+        <div>
+          <span style="font-size: 10px; color: #b48811; text-transform: uppercase; font-weight: bold; display: block;">Текущий возраст</span>
+          <span style="font-size: 16px; color: #4ade80; font-weight: 700;">${lifespanData.currentAge} лет</span>
+        </div>
+        <div>
+          <span style="font-size: 10px; color: #b48811; text-transform: uppercase; font-weight: bold; display: block;">Текущая фаза</span>
+          <span style="font-size: 14px; color: #cbd5e1; font-weight: 600;">${lifespanData.currentPhaseName}</span>
+        </div>
+      </div>
+
+      <!-- Longevity Corridor Banner -->
+      <div style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(13, 20, 38, 0.9) 100%); border: 2px solid rgba(255, 215, 0, 0.4); border-radius: 16px; padding: 20px; margin-bottom: 22px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <span style="font-size: 11px; color: #ffd700; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; display: block; margin-bottom: 4px;">
+            ✦ ПОТЕНЦИАЛ ВИТАЛЬНОСТИ И КОРИДОР ДОЛГОЛЕТИЯ ✦
+          </span>
+          <div style="font-family: 'Cinzel', serif; font-size: 26px; color: #ffffff; font-weight: 800;">
+            ${lifespanData.baseLongevityMin} – ${lifespanData.baseLongevityMax} <span style="font-size: 18px; color: #ffd700;">ЛЕТ</span>
+          </div>
+          <p style="font-size: 12px; color: #94a3b8; margin: 4px 0 0 0;">
+            Стихия витальности: <strong style="color: #e2e8f0;">${lifespanData.element}</strong> &nbsp;|&nbsp; 
+            Индекс праны: <strong style="color: #4ade80;">${lifespanData.vitalityScore}%</strong>
+          </p>
+        </div>
+        <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #ffd700; background: rgba(255, 215, 0, 0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+          <span style="font-size: 20px; font-weight: 900; color: #ffd700;">${lifespanData.vitalityScore}%</span>
+          <span style="font-size: 8px; color: #cbd5e1; text-transform: uppercase;">Прана</span>
+        </div>
+      </div>
+
+      <!-- Vitality Factors -->
+      <div style="margin-bottom: 22px;">
+        <h3 style="font-family: 'Cinzel', serif; font-size: 15px; color: #ffd700; margin-bottom: 12px; letter-spacing: 1.5px;">
+          ◈ ФАКТОРЫ БИОЛОГИЧЕСКОГО РЕСУРСА
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+          ${lifespanData.vitalityFactors.map(f => `
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 12px; padding: 12px 10px; text-align: center;">
+              <span style="font-size: 10px; color: #cbd5e1; display: block; margin-bottom: 4px;">${f.name}</span>
+              <span style="font-size: 18px; font-weight: 800; color: #ffd700;">${f.val}%</span>
+            </div>
+          `).join('')}
+        </div>
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 10px 14px; margin-top: 10px; font-size: 12px; color: #fca5a5;">
+          <strong>⚠️ Зона психосоматического внимания:</strong> ${lifespanData.vulnerableZone}
+        </div>
+      </div>
+
+      <!-- 4 Biological Seasons -->
+      <div style="margin-bottom: 22px;">
+        <h3 style="font-family: 'Cinzel', serif; font-size: 15px; color: #ffd700; margin-bottom: 12px; letter-spacing: 1.5px;">
+          ◈ 4 БИОЛОГИЧЕСКИХ СЕЗОНА ЧЕЛОВЕКА
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          ${lifespanData.seasons.map(s => `
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 215, 0, 0.15); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                  <strong style="font-family: 'Cinzel', serif; font-size: 14px; color: #ffffff;">${s.name}</strong>
+                  <span style="font-size: 11px; font-weight: bold; color: #ffd700; background: rgba(255,215,0,0.15); padding: 2px 8px; border-radius: 6px;">${s.range}</span>
+                </div>
+                <p style="font-size: 11.5px; color: #cbd5e1; margin: 0; line-height: 1.5;">${s.desc}</p>
+              </div>
+              <div style="width: 36px; height: 36px; min-width: 36px; border-radius: 10px; background: rgba(255,215,0,0.15); border: 1px solid #ffd700; color: #ffd700; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; margin-left: 12px;">
+                ${s.arcana}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Key Karmic Turning Points -->
+      <div style="margin-bottom: 22px;">
+        <h3 style="font-family: 'Cinzel', serif; font-size: 15px; color: #ffd700; margin-bottom: 12px; letter-spacing: 1.5px;">
+          ◈ КЛЮЧЕВЫЕ ТОЧКИ ВЫБОРА И ВОЗРАСТНЫЕ РУБЕЖИ
+        </h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          ${lifespanData.turningPoints.map(tp => `
+            <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 8px 12px; display: flex; gap: 10px; align-items: center;">
+              <span style="font-weight: 800; font-size: 13px; color: #ffd700; min-width: 50px;">${tp.age} лет</span>
+              <span style="font-size: 11px; color: #cbd5e1; line-height: 1.4;">${tp.task}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Tarot Spread for Time and Longevity if present -->
+      ${tarotReading && tarotReading.length > 0 ? `
+        <div style="margin-bottom: 22px; border-top: 1px dashed rgba(255,215,0,0.3); padding-top: 18px;">
+          <h3 style="font-family: 'Cinzel', serif; font-size: 15px; color: #c084fc; margin-bottom: 12px; letter-spacing: 1.5px;">
+            🔮 ТАРО-РАСКЛАД НА СРОКИ И ГОРИЗОНТ СОБЫТИЙ
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+            ${tarotReading.map(card => `
+              <div style="background: rgba(168, 85, 247, 0.06); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 12px; text-align: center;">
+                <span style="font-size: 10px; color: #c084fc; font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 4px;">${card.positionTitle}</span>
+                <strong style="font-family: 'Cinzel', serif; font-size: 14px; color: #ffffff; display: block; margin-bottom: 6px;">${card.name}</strong>
+                <p style="font-size: 11px; color: #cbd5e1; margin: 0 0 6px 0; line-height: 1.4;">${card.meaning}</p>
+                <span style="font-size: 10px; color: #ffd700; background: rgba(255,215,0,0.15); padding: 2px 6px; border-radius: 4px; display: inline-block;">⏱ ${card.timeHint}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- AI Personalized Synthesis if present -->
+      ${aiReport ? `
+        <div style="margin-bottom: 22px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 215, 0, 0.25); border-radius: 14px; padding: 18px;">
+          <h3 style="font-family: 'Cinzel', serif; font-size: 14px; color: #ffd700; margin-bottom: 10px; letter-spacing: 1px;">
+            ✦ ПЕРСОНАЛЬНЫЙ СИНТЕЗ ХРОНОСА & ПРЕДНАЗНАЧЕНИЯ ✦
+          </h3>
+          <p style="font-size: 12px; line-height: 1.7; color: #e2e8f0; margin: 0; white-space: pre-wrap;">${aiReport}</p>
+        </div>
+      ` : ''}
+
+      <!-- Footer -->
+      <div style="text-align: center; border-top: 1px solid rgba(255, 215, 0, 0.2); padding-top: 18px; margin-top: 24px; font-size: 11px; color: #94a3b8;">
+        <p style="margin: 0; letter-spacing: 1.5px; text-transform: uppercase;">Chubuk Matrix System • Сакральный Хронос и Коридор Долголетия</p>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(container);
+
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#070b18',
+      logging: false
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+    const totalPdfHeight = (imgHeight * pdfWidth) / imgWidth;
+    let heightLeft = totalPdfHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+    heightLeft -= pdfHeight;
+
+    while (heightLeft > 0) {
+      position = -(totalPdfHeight - heightLeft);
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+      heightLeft -= pdfHeight;
+    }
+
+    const safeFileName = filename || `Хронос_Сроки_Долголетие_${userName}`;
+    await savePdfDocument(pdf, safeFileName, 'Хронос и Сроки Событий');
+  } catch (error) {
+    console.error('Error generating Lifespan PDF:', error);
+    throw error;
+  } finally {
+    if (document.body.contains(container)) {
+      document.body.removeChild(container);
+    }
+  }
+};
+
+export const exportPsychologicalPortraitPdf = async ({
+  userInput,
+  matrix,
+  matrixMap,
+  balanceScores,
+  aiReport,
+  filename
+}: {
+  userInput?: UserInput | null;
+  matrix?: MatrixNumbers | null;
+  matrixMap: {
+    dayProfile: ArcanaPsychologyProfile;
+    monthProfile: ArcanaPsychologyProfile;
+    yearProfile: ArcanaPsychologyProfile;
+    karmicProfile: ArcanaPsychologyProfile;
+    comfortProfile: ArcanaPsychologyProfile;
+    destinyProfile: ArcanaPsychologyProfile;
+  };
+  balanceScores?: Record<string, number>;
+  aiReport?: string | null;
+  filename?: string;
+}) => {
+  const userName = userInput?.name || 'Странник';
+  const birthDate = userInput?.birthDate || 'Не указана';
+
+  const positions = [
+    { title: 'Точка А: Личность & Визитка (День)', profile: matrixMap.dayProfile, key: 'day' },
+    { title: 'Точка B: Таланты & Высшая Связь (Месяц)', profile: matrixMap.monthProfile, key: 'month' },
+    { title: 'Точка C: Деньги & Материализация (Год)', profile: matrixMap.yearProfile, key: 'year' },
+    { title: 'Точка D: Кармический Хвост (Главный Урок)', profile: matrixMap.karmicProfile, key: 'karmic' },
+    { title: 'Точка E: Зона Комфорта (Центр Души)', profile: matrixMap.comfortProfile, key: 'comfort' },
+    { title: 'Предназначение: Итоговый Синтез', profile: matrixMap.destinyProfile, key: 'destiny' }
+  ];
+
+  const container = document.createElement('div');
+  container.id = 'pdf-psychology-container';
+  container.style.position = 'fixed';
+  container.style.top = '-99999px';
+  container.style.left = '-99999px';
+  container.style.width = '840px';
+  container.style.backgroundColor = '#0b0814';
+  container.style.color = '#e2e8f0';
+  container.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  container.style.padding = '36px';
+  container.style.boxSizing = 'border-box';
+  container.style.zIndex = '-9999';
+
+  container.innerHTML = `
+    <div style="border: 2px solid #a855f7; padding: 32px; border-radius: 24px; background: linear-gradient(180deg, #180e2a 0%, #0b0814 100%); position: relative; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.9);">
+      
+      <!-- Header -->
+      <div style="text-align: center; border-bottom: 1px solid rgba(168, 85, 247, 0.3); padding-bottom: 24px; margin-bottom: 24px;">
+        <div style="display: inline-block; width: 56px; height: 56px; line-height: 56px; border-radius: 16px; background: linear-gradient(135deg, #c084fc, #9333ea); color: #fff; font-weight: 800; font-size: 28px; font-family: 'Cinzel', serif; margin-bottom: 12px; box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);">🧠</div>
+        <h1 style="font-family: 'Cinzel', serif; font-size: 25px; color: #f3e8ff; letter-spacing: 3px; margin: 0; text-transform: uppercase;">ГЛУБИННЫЙ ПСИХОЛОГИЧЕСКИЙ ПОРТРЕТ 22 АРКАНОВ</h1>
+        <p style="font-size: 12px; color: #d8b4fe; letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; font-weight: 600;">
+          Юнгианские Архетипы • Свет & Тень • Ключи Трансформации • Для: ${userName}
+        </p>
+      </div>
+
+      <!-- User Profile Box -->
+      <div style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 16px; padding: 18px; margin-bottom: 22px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; text-align: center;">
+        <div>
+          <span style="font-size: 10px; color: #c084fc; text-transform: uppercase; font-weight: bold; display: block;">Странник</span>
+          <span style="font-size: 16px; color: #ffffff; font-weight: 700;">${userName}</span>
+        </div>
+        <div>
+          <span style="font-size: 10px; color: #c084fc; text-transform: uppercase; font-weight: bold; display: block;">Дата рождения</span>
+          <span style="font-size: 16px; color: #ffffff; font-weight: 700;">${birthDate}</span>
+        </div>
+        <div>
+          <span style="font-size: 10px; color: #c084fc; text-transform: uppercase; font-weight: bold; display: block;">Центральный Архетип</span>
+          <span style="font-size: 14px; color: #ffd700; font-weight: 700;">${matrixMap.comfortProfile.name}</span>
+        </div>
+      </div>
+
+      <!-- 6 Matrix Points Psychological Breakdown -->
+      <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+        ${positions.map(p => {
+          const score = balanceScores ? balanceScores[p.key] : null;
+          return `
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 16px; padding: 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(168,85,247,0.2); padding-bottom: 8px;">
+                <div>
+                  <span style="font-size: 10px; color: #c084fc; text-transform: uppercase; font-weight: bold; display: block;">${p.title}</span>
+                  <strong style="font-family: 'Cinzel', serif; font-size: 16px; color: #ffffff;">Аркан ${p.profile.arcana}: ${p.profile.name} (${p.profile.archetype})</strong>
+                </div>
+                <div style="text-align: right;">
+                  <span style="font-size: 11px; font-weight: bold; color: #ffd700; background: rgba(255,215,0,0.15); padding: 3px 10px; border-radius: 6px;">
+                    ${score !== null && score !== undefined ? `Баланс: ${score}%` : `Стихия: ${p.profile.element}`}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Plus vs Minus Grid -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                <div style="background: rgba(34, 197, 94, 0.06); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 10px; padding: 10px;">
+                  <span style="font-size: 10.5px; font-weight: bold; color: #4ade80; display: block; margin-bottom: 4px;">✨ СВЕТ И РЕСУРС (+)</span>
+                  <p style="font-size: 11px; color: #cbd5e1; margin: 0 0 4px 0; line-height: 1.4;">${p.profile.plusTraits.description}</p>
+                  <div style="font-size: 10px; color: #86efac;"><strong>Мышление:</strong> ${p.profile.plusTraits.mindset}</div>
+                </div>
+
+                <div style="background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 10px;">
+                  <span style="font-size: 10.5px; font-weight: bold; color: #f87171; display: block; margin-bottom: 4px;">⚠️ ТЕНЬ И ЛОВУШКА (-)</span>
+                  <p style="font-size: 11px; color: #cbd5e1; margin: 0 0 4px 0; line-height: 1.4;">${p.profile.minusTraits.description}</p>
+                  <div style="font-size: 10px; color: #fca5a5;"><strong>Ловушка эго:</strong> ${p.profile.minusTraits.egoTraps}</div>
+                </div>
+              </div>
+
+              <!-- Transformation Keys -->
+              <div style="background: rgba(168, 85, 247, 0.08); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #d8b4fe;">
+                <strong>🔑 Ключи вывода в плюс:</strong> ${p.profile.transformationKeys.join(' • ')}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <!-- AI Synthesis Report if present -->
+      ${aiReport ? `
+        <div style="margin-bottom: 22px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 14px; padding: 18px;">
+          <h3 style="font-family: 'Cinzel', serif; font-size: 14px; color: #c084fc; margin-bottom: 10px; letter-spacing: 1px;">
+            ✦ АНАЛИТИЧЕСКИЙ СИНТЕЗ ЮНГИАНСКОГО ПОРТРЕТА ✦
+          </h3>
+          <p style="font-size: 12px; line-height: 1.7; color: #e2e8f0; margin: 0; white-space: pre-wrap;">${aiReport}</p>
+        </div>
+      ` : ''}
+
+      <!-- Transformational Affirmation -->
+      <div style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.18) 0%, rgba(20, 10, 36, 0.9) 100%); border: 2px solid rgba(168, 85, 247, 0.45); border-radius: 16px; padding: 20px; text-align: center;">
+        <span style="font-size: 10px; color: #c084fc; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; display: block; margin-bottom: 8px;">
+          ✦ АФФИРМАЦИЯ ИНТЕГРАЦИИ ТЕНИ И СВЕТА ✦
+        </span>
+        <p style="font-family: 'Cinzel', serif; font-size: 14px; font-style: italic; color: #ffffff; margin: 0; line-height: 1.6;">
+          «${matrixMap.comfortProfile.affirmation}»
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div style="text-align: center; border-top: 1px solid rgba(168, 85, 247, 0.2); padding-top: 18px; margin-top: 24px; font-size: 11px; color: #94a3b8;">
+        <p style="margin: 0; letter-spacing: 1.5px; text-transform: uppercase;">Chubuk Matrix System • Глубинная Психология 22 Арканов</p>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(container);
+
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#0b0814',
+      logging: false
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+    const totalPdfHeight = (imgHeight * pdfWidth) / imgWidth;
+    let heightLeft = totalPdfHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+    heightLeft -= pdfHeight;
+
+    while (heightLeft > 0) {
+      position = -(totalPdfHeight - heightLeft);
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+      heightLeft -= pdfHeight;
+    }
+
+    const safeFileName = filename || `Психологический_Портрет_${userName}`;
+    await savePdfDocument(pdf, safeFileName, 'Психологический Портрет 22 Арканов');
+  } catch (error) {
+    console.error('Error generating Psychological Portrait PDF:', error);
+    throw error;
+  } finally {
+    if (document.body.contains(container)) {
+      document.body.removeChild(container);
+    }
+  }
+};
+
 
 const pcmToWav = (pcmData: Uint8Array, sampleRate: number = 24000): Blob => {
   const buffer = new ArrayBuffer(44 + pcmData.length);

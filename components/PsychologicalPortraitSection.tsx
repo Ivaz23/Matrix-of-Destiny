@@ -22,7 +22,8 @@ import {
   ChevronDown, 
   ChevronUp,
   Layers,
-  Activity
+  Activity,
+  Download
 } from 'lucide-react';
 import { UserInput, MatrixNumbers } from '../types';
 import { 
@@ -33,6 +34,7 @@ import {
 } from '../services/arcanaPsychologyData';
 import { useGlobalAudio } from '../src/hooks/useGlobalAudio';
 import { chatWithChubuk } from '../services/geminiService';
+import { exportPsychologicalPortraitPdf } from '../services/exportUtils';
 
 interface PsychologicalPortraitSectionProps {
   userInput: UserInput | null;
@@ -63,6 +65,7 @@ export const PsychologicalPortraitSection: React.FC<PsychologicalPortraitSection
   // AI Psychological Report State
   const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
   const [aiPsychologyReport, setAiPsychologyReport] = useState<string | null>(null);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   const { playingId, playAudio, stopAudio } = useGlobalAudio();
 
@@ -142,6 +145,24 @@ export const PsychologicalPortraitSection: React.FC<PsychologicalPortraitSection
       setAiPsychologyReport('Не удалось сформировать психологический отчет. Проверьте соединение с сервером.');
     } finally {
       setIsGeneratingAiReport(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (!matrixMap) return;
+    setIsExportingPdf(true);
+    try {
+      await exportPsychologicalPortraitPdf({
+        userInput,
+        matrix,
+        matrixMap,
+        balanceScores,
+        aiReport: aiPsychologyReport
+      });
+    } catch (err) {
+      console.error("Failed to export Psychological Portrait PDF:", err);
+    } finally {
+      setIsExportingPdf(false);
     }
   };
 
@@ -228,6 +249,17 @@ export const PsychologicalPortraitSection: React.FC<PsychologicalPortraitSection
             <BookOpen size={15} />
             <span>Энциклопедия 22 Арканов</span>
           </button>
+
+          {matrix && (
+            <button
+              onClick={handleExportPdf}
+              disabled={isExportingPdf}
+              className="px-4 py-2.5 rounded-xl font-serif text-xs font-bold transition-all flex items-center gap-2 cursor-pointer bg-gradient-to-r from-purple-500/20 to-amber-500/20 hover:from-purple-500/30 hover:to-amber-500/30 text-amber-300 border border-amber-500/40 ml-auto shadow-sm"
+            >
+              <Download size={15} className={isExportingPdf ? 'animate-bounce' : ''} />
+              <span>{isExportingPdf ? 'Создание PDF...' : 'Скачать PDF'}</span>
+            </button>
+          )}
         </div>
       </div>
 

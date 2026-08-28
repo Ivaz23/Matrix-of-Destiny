@@ -38,8 +38,9 @@ interface CategoryItem {
 
 const CATEGORIES: CategoryItem[] = [
   { id: 'matrix', label: 'Матрица Судьбы', shortLabel: 'Матрица', icon: '🌟', highlight: true },
+  { id: 'lifespan', label: 'Хронос: Сроки & Долголетие', shortLabel: 'Сроки & Долголетие ⏳', icon: '⏳', badge: 'NEW', highlight: true },
   { id: 'psychology', label: 'Психологический Портрет (+/-)', shortLabel: 'Психология (+/-)', icon: '🧠', badge: 'NEW', highlight: true },
-  { id: 'cooking', label: 'Кашеваривание & Питание', shortLabel: 'Кашеваривание 🥣', icon: '🥣', badge: 'NEW', highlight: true },
+  { id: 'caching', label: 'Кэширование & Память', shortLabel: 'Кэширование ⚡', icon: '⚡', badge: 'TURBO', highlight: true },
   { id: 'meditation', label: 'Медитационный Центр', shortLabel: 'Медитации 🧘', icon: '🧘', badge: 'NEW', highlight: true },
   { id: 'tapper', label: 'Chubuk Kombat (Тапалка)', shortLabel: 'Тапалка 🪙', icon: '🪙', badge: 'PLAY', highlight: true },
   { id: 'daily', label: 'Прогноз Дня', shortLabel: 'Прогноз', icon: '🔮', badge: 'AI' },
@@ -58,6 +59,7 @@ const CATEGORIES: CategoryItem[] = [
   { id: 'ancestral', label: 'Родовое Древо', shortLabel: 'Род', icon: '🌿' },
   { id: 'elective', label: 'Элективные Даты', shortLabel: 'Электив', icon: '📅' },
   { id: 'profile', label: 'Мой Профиль', shortLabel: 'Профиль', icon: '👤' },
+  { id: 'admin', label: 'Админ-Панель', shortLabel: 'Админка 👑', icon: '👑', badge: 'VIP' },
 ];
 
 export const AppCategoryRibbon: React.FC<AppCategoryRibbonProps> = ({

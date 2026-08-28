@@ -1744,3 +1744,58 @@ export const generateDailyMysticalForecast = async (
     return fallbackForecast;
   }
 };
+
+export const generatePersonalLifespanSynthesis = async (params: {
+  userInput: UserInput | null;
+  matrix: MatrixNumbers | null;
+  vitalityScore: number;
+  currentAge: number;
+  baseLongevityMin: number;
+  baseLongevityMax: number;
+  tarotCards?: string;
+  customQuestion?: string;
+}): Promise<string> => {
+  const { userInput, matrix, vitalityScore, currentAge, baseLongevityMin, baseLongevityMax, tarotCards, customQuestion } = params;
+  const name = userInput?.name || "Ищущий";
+  const birthDate = userInput?.birthDate || "не указана";
+
+  try {
+    const prompt = `Ты — Высший Оракул Хроноса и Матрицы Судьбы Chubuk.
+Составь сакральный глубокий манускрипт "Хронос Судьбы & Вектор Долголетия" для человека.
+
+Параметры:
+- Имя: ${name}
+- Дата рождения: ${birthDate}
+- Текущий возраст: ${currentAge} лет
+- Потенциал витальности: ${vitalityScore}%
+- Природный коридор долголетия: ${baseLongevityMin}–${baseLongevityMax} лет
+- Ключевые Арканы Матрицы: Визитка (${matrix?.day || 9}), Таланты (${matrix?.month || 12}), Кармический хвост (${matrix?.bottom || 9}), Душа (${matrix?.center || 9}), Судьба (${matrix?.destiny || 10})
+- Расклад Таро на сроки: ${tarotCards || "Карты не разложены"}
+${customQuestion ? `- Индивидуальный вопрос о сроках: "${customQuestion}"` : ''}
+
+Структура ответа (красивый Markdown, с сакральными эмодзи):
+1. ⏳ **Временной Цикл Души & Текущая Фаза** (На каком рубеже находится человек, какие уроки времени сейчас активны).
+2. 🛡️ **Формула Витальности и Ресурс Долголетия** (Объяснение коридора ${baseLongevityMin}-${baseLongevityMax} лет, как сохранить запас праны, какие годы являются критическими точками перехода).
+3. 🎴 **Шифр Сроков по Таро** (Трактовка расклада, конкретные сроки решения вопросов, периоды для рывка и периоды для созерцания).
+4. 🌿 **3 Главных Закона Продления Молодости** (Точные духовные и телесные практики для этого набора арканов).
+
+Пиши глубоко, мудро, вдохновляюще, без фатализма, подчеркивая силу свободной воли и осознанности.`;
+
+    const response = await callAiProxy({
+      contents: prompt,
+      model: "gemini-2.5-flash"
+    });
+
+    if (response && response.text) {
+      return response.text;
+    }
+    if (response && response.candidates && response.candidates[0]?.content?.parts?.[0]?.text) {
+      return response.candidates[0].content.parts[0].text;
+    }
+  } catch (err) {
+    console.error("Gemini lifespan generation error:", err);
+  }
+
+  return `### ⏳ Сакральный Манускрипт Хроноса & Долголетия\n\n**Для: ${name}**\n\n- **Потенциал долголетия:** Природный коридор составляет **${baseLongevityMin}–${baseLongevityMax} лет** при условии гармоничного проживания энергий ${matrix?.center || 9}-го Аркана Комфорта Души.\n- **Текущая фаза (${currentAge} лет):** Время кристаллизации профессионального и духовного авторитета.\n- **Сроки и рубежи:** Ближайшие важные перемены развернутся в течение следующих 6–12 месяцев.\n- **Ключ к долголетию:** Ежедневная медитация 528 Гц, глубокий сон до полуночи и отказ от самоедства сохранят до 15 лет дополнительной жизненной праны.`;
+};
+

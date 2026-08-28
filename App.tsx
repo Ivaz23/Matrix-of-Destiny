@@ -62,7 +62,9 @@ const PowerCalendarSection = lazy(() => import('./components/PowerCalendarSectio
 const KarmaTapperSection = lazy(() => import('./components/KarmaTapperSection'));
 const MeditationCenter = lazy(() => import('./components/MeditationCenter'));
 const PsychologicalPortraitSection = lazy(() => import('./components/PsychologicalPortraitSection').then(m => ({ default: m.PsychologicalPortraitSection })));
-const SacredCookingSection = lazy(() => import('./components/SacredCookingSection').then(m => ({ default: m.SacredCookingSection })));
+const CachingSection = lazy(() => import('./components/CachingSection'));
+const LifespanSection = lazy(() => import('./components/LifespanSection'));
+const AdminPanelSection = lazy(() => import('./components/AdminPanelSection'));
 
 import { calculateMatrix } from './services/numerologyUtils';
 import { getAstrologyData } from './services/astrologyUtils';
@@ -553,6 +555,15 @@ export const App: React.FC = () => {
                       </div>
                     )}
                   </div>
+                ) : activeTab === 'lifespan' ? (
+                  <div className="w-full max-w-5xl">
+                    <LifespanSection 
+                      userInput={userInput} 
+                      matrix={matrix} 
+                      onNavigateToMatrix={() => setActiveTab('matrix')}
+                      onNavigateToTarot={() => setActiveTab('tarot')}
+                    />
+                  </div>
                 ) : activeTab === 'psychology' ? (
                   <div className="w-full max-w-5xl">
                     <PsychologicalPortraitSection 
@@ -561,13 +572,13 @@ export const App: React.FC = () => {
                       onNavigateToMatrix={() => setActiveTab('matrix')}
                     />
                   </div>
-                ) : activeTab === 'cooking' ? (
+                ) : activeTab === 'caching' || (activeTab as string) === 'cooking' ? (
                   <div className="w-full max-w-5xl">
-                    <SacredCookingSection 
+                    <CachingSection 
                       userInput={userInput} 
                       matrix={matrix} 
                       onNavigateToMatrix={() => setActiveTab('matrix')}
-                      onNavigateToChakras={() => setActiveTab('chakras')}
+                      onNavigateToProfile={() => setActiveTab('profile')}
                     />
                   </div>
                 ) : activeTab === 'meditation' ? (
@@ -662,6 +673,14 @@ export const App: React.FC = () => {
                 ) : activeTab === 'horary' ? (
                   <div className="w-full max-w-4xl">
                     <HorarySection userInput={userInput} onSave={(res) => saveReading({ horary: res })} />
+                  </div>
+                ) : activeTab === 'admin' ? (
+                  <div className="w-full max-w-5xl">
+                    <AdminPanelSection 
+                      user={user} 
+                      savedCalculations={savedCalculations}
+                      onTriggerHaptic={triggerHaptic}
+                    />
                   </div>
                 ) : activeTab === 'profile' ? (
                   <div className="w-full max-w-5xl">

@@ -28,7 +28,11 @@ import {
   Coins,
   Bell,
   Brain,
-  Soup
+  Soup,
+  Hourglass,
+  ShieldAlert,
+  Database,
+  HardDrive
 } from 'lucide-react';
 
 export type AppNavTabId = 
@@ -36,7 +40,9 @@ export type AppNavTabId =
   | 'psychology'
   | 'meditation'
   | 'tapper'
+  | 'caching'
   | 'cooking'
+  | 'lifespan'
   | 'wallpapers' 
   | 'chakras' 
   | 'akashic' 
@@ -52,7 +58,8 @@ export type AppNavTabId =
   | 'compatibility' 
   | 'tarot' 
   | 'horary' 
-  | 'profile';
+  | 'profile'
+  | 'admin';
 
 interface NavCategory {
   title: string;
@@ -75,6 +82,14 @@ const NAV_CATEGORIES: NavCategory[] = [
         label: 'Матрица Судьбы',
         description: 'Сакральная геометрия и 22 аркана души',
         icon: Sparkles,
+        color: '#f59e0b'
+      },
+      {
+        id: 'lifespan',
+        label: 'Хронос: Сроки & Долголетие',
+        description: 'Таро на сроки, периоды жизни, рубежи и нумерологический потенциал долголетия',
+        icon: Hourglass,
+        badge: 'NEW',
         color: '#f59e0b'
       },
       {
@@ -102,12 +117,12 @@ const NAV_CATEGORIES: NavCategory[] = [
         color: '#facc15'
       },
       {
-        id: 'cooking',
-        label: 'Сакральное Кашеваривание',
-        description: 'Питание по арканам матрицы, алхимия 6 злаков и Аюрведа',
-        icon: Soup,
-        badge: 'NEW',
-        color: '#fb923c'
+        id: 'caching',
+        label: 'Кэширование & Память',
+        description: 'Оптимизация хранилища, предрасчет 22 арканов и офлайн-режим 0 ms',
+        icon: Database,
+        badge: 'TURBO',
+        color: '#06b6d4'
       },
       {
         id: 'wallpapers',
@@ -239,6 +254,14 @@ const NAV_CATEGORIES: NavCategory[] = [
         description: 'История расчетов и персональные настройки',
         icon: User,
         color: '#e2e8f0'
+      },
+      {
+        id: 'admin',
+        label: 'Админ-Панель (Master)',
+        description: 'Панель создателя: аналитика, промокоды, управление ИИ и баннерами',
+        icon: ShieldAlert,
+        badge: 'VIP',
+        color: '#ec4899'
       }
     ]
   }

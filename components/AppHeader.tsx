@@ -35,8 +35,10 @@ interface AppHeaderProps {
 
 const TAB_TITLES: Record<AppNavTabId, { title: string; subtitle: string; icon: string }> = {
   matrix: { title: 'Матрица Судьбы', subtitle: '22 сакральных аркана души', icon: '🌟' },
+  lifespan: { title: 'Хронос: Сроки & Долголетие', subtitle: 'Таро на сроки событий, возрастные рубежи и витальность', icon: '⏳' },
   psychology: { title: 'Психологический Портрет', subtitle: 'Плюсы, минусы, тени и ключи трансформации 22 арканов', icon: '🧠' },
-  cooking: { title: 'Сакральное Кашеваривание', subtitle: 'Питание по арканам матрицы, алхимия 6 злаков и Аюрведа', icon: '🥣' },
+  caching: { title: 'Кэширование & Оптимизация', subtitle: 'Управление памятью, предрасчет 22 арканов и офлайн-режим', icon: '⚡' },
+  cooking: { title: 'Кэширование & Оптимизация', subtitle: 'Управление памятью, предрасчет 22 арканов и офлайн-режим', icon: '⚡' },
   meditation: { title: 'Медитационный Центр', subtitle: 'Звуковые ландшафты и духовные медитации', icon: '🧘' },
   tapper: { title: 'Chubuk Kombat', subtitle: 'Тапалка кармы, майнинг и дроп $CHUBUK', icon: '🪙' },
   daily: { title: 'Прогноз Дня', subtitle: 'Космическая погода и биоритмы', icon: '🔮' },
@@ -55,6 +57,7 @@ const TAB_TITLES: Record<AppNavTabId, { title: string; subtitle: string; icon: s
   tarot: { title: 'Таро Расклады', subtitle: 'Кельтский крест и триптих', icon: '🃏' },
   horary: { title: 'Хорарная Астрология', subtitle: 'Ответ звезд на вопрос момента', icon: '🕰️' },
   profile: { title: 'Мой Профиль', subtitle: 'История расчетов и архив', icon: '👤' },
+  admin: { title: 'Админ-Панель', subtitle: 'Master Control, управление ИИ, промокодами и аналитикой', icon: '👑' },
 };
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
