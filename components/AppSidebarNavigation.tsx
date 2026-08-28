@@ -58,6 +58,7 @@ export type AppNavTabId =
   | 'compatibility' 
   | 'tarot' 
   | 'horary' 
+  | 'faq'
   | 'profile'
   | 'admin';
 
@@ -247,6 +248,13 @@ const NAV_CATEGORIES: NavCategory[] = [
         description: '3 сакральные карты и послание оракула',
         icon: Layers,
         color: '#d8b4fe'
+      },
+      {
+        id: 'faq',
+        label: 'FAQ (База Знаний)',
+        description: 'Часто задаваемые вопросы о 22 арканах, карме и матрице',
+        icon: HelpCircle,
+        color: '#f59e0b'
       },
       {
         id: 'profile',

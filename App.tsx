@@ -64,6 +64,7 @@ const MeditationCenter = lazy(() => import('./components/MeditationCenter'));
 const PsychologicalPortraitSection = lazy(() => import('./components/PsychologicalPortraitSection').then(m => ({ default: m.PsychologicalPortraitSection })));
 const CachingSection = lazy(() => import('./components/CachingSection'));
 const LifespanSection = lazy(() => import('./components/LifespanSection'));
+const FaqSection = lazy(() => import('./components/FaqSection'));
 const AdminPanelSection = lazy(() => import('./components/AdminPanelSection'));
 
 import { calculateMatrix } from './services/numerologyUtils';
@@ -446,7 +447,7 @@ export const App: React.FC = () => {
                 </div>
               }>
                 {activeTab === 'matrix' ? (
-                  <div className="w-full max-w-5xl flex flex-col items-center space-y-6">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1 flex flex-col items-center space-y-6">
                     {/* Active Profile Status Header Bar */}
                     {userInput && matrix ? (
                       <div className="w-full p-3 sm:p-4 rounded-3xl bg-gradient-to-r from-[#0e1628] via-[#090e1c] to-[#0e1628] border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
@@ -506,7 +507,7 @@ export const App: React.FC = () => {
                     ) : null}
 
                     {/* Calculation & Matrix Visual Card Container */}
-                    <div ref={calculatorRef} className="w-full grid md:grid-cols-2 gap-4 sm:gap-6 items-start">
+                    <div ref={calculatorRef} className="w-full grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4 sm:gap-6 items-start">
                       <div className="w-full">
                         <InputForm onSubmit={handleCalculate} isLoading={loading} />
                       </div>
@@ -556,7 +557,7 @@ export const App: React.FC = () => {
                     )}
                   </div>
                 ) : activeTab === 'lifespan' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <LifespanSection 
                       userInput={userInput} 
                       matrix={matrix} 
@@ -565,7 +566,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'psychology' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <PsychologicalPortraitSection 
                       userInput={userInput} 
                       matrix={matrix} 
@@ -573,7 +574,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'caching' || (activeTab as string) === 'cooking' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <CachingSection 
                       userInput={userInput} 
                       matrix={matrix} 
@@ -582,7 +583,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'meditation' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <MeditationCenter 
                       userInput={userInput} 
                       matrix={matrix} 
@@ -591,7 +592,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'daily' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <DailyForecastSection 
                       initialUserInput={userInput} 
                       onSaveBirthDate={(input) => {
@@ -610,7 +611,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'tapper' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <KarmaTapperSection 
                       userInput={userInput} 
                       matrix={matrix} 
@@ -620,62 +621,80 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'wallpapers' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <SacredWallpapersSection userInput={userInput} matrix={matrix} />
                   </div>
                 ) : activeTab === 'chakras' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <ChakrasSection userInput={userInput} matrix={matrix} />
                   </div>
                 ) : activeTab === 'akashic' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <AkashicRecordsSection userInput={userInput} matrix={matrix} />
                   </div>
                 ) : activeTab === 'powercal' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <PowerCalendarSection userInput={userInput} matrix={matrix} />
                   </div>
                 ) : activeTab === 'lunar' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <LunarCalendarSection />
                   </div>
                 ) : activeTab === 'elective' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <ElectiveDatesSection 
                       userInput={userInput} 
                       onOpenNotifications={() => setIsNotificationModalOpen(true)}
                     />
                   </div>
                 ) : activeTab === 'ancestral' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <AncestralLineageSection userInput={userInput} matrix={matrix} />
                   </div>
                 ) : activeTab === 'litho' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <LithotherapySection userInput={userInput} matrix={matrix} astrology={astrology} />
                   </div>
                 ) : activeTab === 'dreams' ? (
-                  <div className="w-full max-w-4xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <DreamOracleSection userInput={userInput} matrix={matrix} />
                   </div>
                 ) : activeTab === 'cities' ? (
-                  <div className="w-full max-w-4xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <CitiesOfPowerSection userInput={userInput} matrix={matrix} astrology={astrology} />
                   </div>
                 ) : activeTab === 'astrology' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <AstrologySection userInput={userInput} />
                   </div>
                 ) : activeTab === 'compatibility' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <CompatibilitySection user1={{ input: userInput, matrix, astrology }} onSave={(res) => saveReading({ compatibility: res })} />
                   </div>
                 ) : activeTab === 'horary' ? (
-                  <div className="w-full max-w-4xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <HorarySection userInput={userInput} onSave={(res) => saveReading({ horary: res })} />
                   </div>
+                ) : activeTab === 'faq' ? (
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                    <FaqSection 
+                      userInput={userInput} 
+                      matrix={matrix} 
+                      onNavigateToChat={() => {
+                        triggerHaptic(10);
+                        setActiveTab('matrix');
+                        setTimeout(() => {
+                          const chatElem = document.getElementById('ai-numerologist-chat');
+                          if (chatElem) {
+                            chatElem.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }, 200);
+                      }}
+                      onTriggerHaptic={triggerHaptic}
+                    />
+                  </div>
                 ) : activeTab === 'admin' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <AdminPanelSection 
                       user={user} 
                       savedCalculations={savedCalculations}
@@ -683,7 +702,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'profile' ? (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <ProfileSection 
                       userInput={userInput} 
                       savedCalculations={savedCalculations}
@@ -697,7 +716,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : (
-                  <div className="w-full max-w-5xl">
+                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
                     <TarotSection userInput={userInput} matrix={matrix} onSave={(res) => saveReading({ tarot: res })} />
                   </div>
                 )}

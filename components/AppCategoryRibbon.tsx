@@ -58,6 +58,7 @@ const CATEGORIES: CategoryItem[] = [
   { id: 'horary', label: 'Хорарный Оракул', shortLabel: 'Хорар', icon: '🕰️' },
   { id: 'ancestral', label: 'Родовое Древо', shortLabel: 'Род', icon: '🌿' },
   { id: 'elective', label: 'Элективные Даты', shortLabel: 'Электив', icon: '📅' },
+  { id: 'faq', label: 'FAQ (База Знаний)', shortLabel: 'FAQ ❓', icon: '❓', highlight: true },
   { id: 'profile', label: 'Мой Профиль', shortLabel: 'Профиль', icon: '👤' },
   { id: 'admin', label: 'Админ-Панель', shortLabel: 'Админка 👑', icon: '👑', badge: 'VIP' },
 ];

@@ -56,6 +56,7 @@ const TAB_TITLES: Record<AppNavTabId, { title: string; subtitle: string; icon: s
   compatibility: { title: 'Совместимость', subtitle: 'Синастрия двух судеб', icon: '❤️' },
   tarot: { title: 'Таро Расклады', subtitle: 'Кельтский крест и триптих', icon: '🃏' },
   horary: { title: 'Хорарная Астрология', subtitle: 'Ответ звезд на вопрос момента', icon: '🕰️' },
+  faq: { title: 'База Знаний & FAQ', subtitle: 'Часто задаваемые вопросы о матрице и 22 арканах', icon: '❓' },
   profile: { title: 'Мой Профиль', subtitle: 'История расчетов и архив', icon: '👤' },
   admin: { title: 'Админ-Панель', subtitle: 'Master Control, управление ИИ, промокодами и аналитикой', icon: '👑' },
 };
