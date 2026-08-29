@@ -164,27 +164,27 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   }, [user, onOpenAdminAuth]);
 
   return (
-    <header className="sticky top-0 z-40 bg-[#050a14]/95 backdrop-blur-2xl border-b border-amber-500/20 shadow-[0_4px_25px_rgba(0,0,0,0.7)] no-print safe-area-pt">
+    <header className="sticky top-0 z-40 bg-[#050a14]/95 backdrop-blur-xl border-b border-amber-500/20 shadow-md no-print safe-area-pt">
       {/* Top App Status Row */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 flex items-center justify-between gap-2">
         {/* Left: Brand Icon + Screen Back / Title */}
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
           {activeTab !== 'matrix' ? (
             <button
               onClick={() => {
                 onTriggerHaptic?.(10);
                 onSelectTab('matrix');
               }}
-              className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 hover:border-amber-500/40 hover:bg-amber-500/10 text-slate-300 hover:text-amber-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
+              className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 hover:border-amber-500/40 hover:bg-amber-500/10 text-slate-300 hover:text-amber-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
               title="Назад в Матрицу"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={18} />
             </button>
           ) : (
             <div 
               onClick={handleLogoClick}
-              title="Chubuk Matrix (Нажмите 3 раза для входа в Master Control)"
-              className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 text-black font-serif font-black text-lg flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.3)] shrink-0 cursor-pointer select-none active:scale-95 transition-transform"
+              title="Chubuk Matrix (3 нажатия для Master Control)"
+              className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 text-black font-serif font-black text-base flex items-center justify-center shadow-md shrink-0 cursor-pointer select-none active:scale-95 transition-transform"
             >
               C
             </div>
@@ -192,19 +192,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-sm shrink-0">{currentTabInfo.icon}</span>
-              <h1 className="font-serif font-bold text-sm sm:text-base text-white tracking-wide truncate">
+              <span className="text-xs shrink-0">{currentTabInfo.icon}</span>
+              <h1 className="font-serif font-bold text-xs sm:text-sm text-white tracking-wide truncate">
                 {currentTabInfo.title}
               </h1>
             </div>
-            <p className="text-[10px] text-slate-400 font-light truncate hidden sm:block">
-              {currentTabInfo.subtitle}
-            </p>
           </div>
         </div>
 
-        {/* Center/Right Status Badges */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Center/Right Compact Controls */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Admin Master Badge / Usage Attempt Counter */}
           {isAdmin || isVip ? (
             <button
@@ -216,60 +213,46 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   onOpenUsageLimitModal?.();
                 }
               }}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500/20 to-purple-500/20 border border-amber-400/60 text-amber-300 hover:border-amber-300 text-xs font-serif font-bold transition-all shadow-[0_0_12px_rgba(245,158,11,0.25)] cursor-pointer"
-              title={isAdmin ? "Панель администратора: Безлимит активен" : "VIP статус: Безлимитный доступ"}
+              className="flex items-center gap-1 px-2 py-1 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 hover:border-amber-300 text-[11px] font-serif font-bold transition-all cursor-pointer"
+              title={isAdmin ? "Панель администратора" : "VIP статус"}
             >
-              <span className="text-amber-400 text-sm">👑</span>
-              <span className="text-[11px] uppercase tracking-wider">{isAdmin ? 'Master (∞)' : 'VIP (∞)'}</span>
+              <span className="text-amber-400 text-xs">👑</span>
+              <span className="font-mono">{isAdmin ? 'Master' : 'VIP'}</span>
             </button>
           ) : (
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => {
-                  onTriggerHaptic?.(10);
-                  onOpenUsageLimitModal?.();
-                }}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                  remainingAttempts > 0
-                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-200 hover:bg-amber-500/20'
-                    : 'bg-red-500/15 border-red-500/40 text-red-300 animate-pulse'
-                }`}
-                title="Попытки расчетов и раскладов. Нажмите для пополнения (Крипта 10к:3 / Колесо / Яндекс / Карты)"
-              >
-                <Sparkles size={13} className={remainingAttempts > 0 ? "text-amber-400" : "text-red-400"} />
-                <span className="font-mono text-[11px] font-bold">
-                  {remainingAttempts > 0 ? `${remainingAttempts} поп.` : '0/3 Лимит'}
-                </span>
-                <span className="text-[10px] text-amber-400/80 font-bold bg-amber-500/20 px-1 rounded">+</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  onTriggerHaptic?.(15);
-                  onOpenUsageLimitModal?.();
-                }}
-                className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 hover:bg-purple-500/25 text-xs font-serif font-bold transition-all cursor-pointer shadow-sm"
-                title="Сакральное Колесо Фортуны — крутите и получайте бесплатные попытки!"
-              >
-                <span>🎡</span>
-                <span className="text-[10px]">Колесо</span>
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                onTriggerHaptic?.(10);
+                onOpenUsageLimitModal?.();
+              }}
+              className={`flex items-center gap-1 px-2 py-1 rounded-xl border text-[11px] font-medium transition-all cursor-pointer ${
+                remainingAttempts > 0
+                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-200 hover:bg-amber-500/20'
+                  : 'bg-red-500/15 border-red-500/40 text-red-300 animate-pulse'
+              }`}
+              title="Попытки расчетов. Нажмите для пополнения / Колеса Фортуны"
+            >
+              <Sparkles size={11} className={remainingAttempts > 0 ? "text-amber-400" : "text-red-400"} />
+              <span className="font-mono font-bold">
+                {remainingAttempts > 0 ? `${remainingAttempts}` : '0'}
+              </span>
+              <span className="text-[9px] text-amber-400 font-bold bg-amber-500/20 px-1 rounded">+</span>
+            </button>
           )}
 
-          {/* Active User Energy Pill if calculated */}
+          {/* Active Profile Pill */}
           {userInput && matrix && (
             <button
               onClick={() => {
                 onTriggerHaptic?.(10);
                 onSelectTab('profile');
               }}
-              className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-200 hover:bg-amber-500/20 transition-all cursor-pointer"
+              className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-200 hover:bg-amber-500/20 transition-all cursor-pointer"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-              <span className="font-medium truncate max-w-[100px]">{userInput.name}</span>
-              <span className="font-mono text-amber-400 font-bold bg-black/40 px-1.5 py-0.2 rounded text-[10px]">
-                {matrix.center} Аркан
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              <span className="font-medium truncate max-w-[80px]">{userInput.name}</span>
+              <span className="font-mono text-amber-400 font-bold bg-black/40 px-1 rounded text-[10px]">
+                {matrix.center}
               </span>
             </button>
           )}
@@ -281,76 +264,58 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 onTriggerHaptic?.(10);
                 onOpenNotifications();
               }}
-              className={`relative p-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+              className={`relative p-1.5 rounded-xl border text-xs transition-all cursor-pointer ${
                 notificationsActive
                   ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25'
-                  : 'bg-white/5 border-white/10 text-slate-400 hover:text-slate-200 hover:bg-white/10'
+                  : 'bg-white/5 border-white/10 text-slate-400 hover:text-slate-200'
               }`}
-              title="Настройка Push-уведомлений и напоминаний о прогнозах"
+              title="Push-уведомления"
             >
-              <Bell size={15} className={notificationsActive ? 'text-amber-400' : ''} />
+              <Bell size={14} className={notificationsActive ? 'text-amber-400' : ''} />
               {notificationsActive && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-[#050a14] animate-pulse" />
+                <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
               )}
             </button>
           )}
 
-          {/* Android App Button */}
+          {/* Android Button */}
           <button
             onClick={() => {
               onTriggerHaptic?.(15);
               onOpenAndroidModal();
             }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#0e1626] border border-amber-500/40 text-amber-300 hover:border-amber-400 hover:bg-amber-500 hover:text-black text-xs font-serif font-bold transition-all shadow-sm cursor-pointer"
-            title="Копия на Android (PWA & APK)"
+            className="flex items-center gap-1 px-2 py-1 rounded-xl bg-[#0e1626] border border-amber-500/30 text-amber-300 hover:bg-amber-500 hover:text-black text-[11px] font-serif font-bold transition-all cursor-pointer"
+            title="Android Приложение"
           >
-            <Smartphone size={14} className="text-amber-400" />
-            <span className="text-[11px] font-bold">Android</span>
+            <Smartphone size={12} className="text-amber-400" />
+            <span className="hidden sm:inline">App</span>
           </button>
-
-          {/* Voice AI Assistant Button */}
-          {onOpenVoiceChat && (
-            <button
-              onClick={() => {
-                onTriggerHaptic?.([20, 40]);
-                onOpenVoiceChat();
-              }}
-              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-gradient-to-r from-purple-900/40 to-amber-900/40 border border-purple-500/40 text-purple-300 hover:border-amber-400 hover:text-amber-200 flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
-              title="Голосовой Оракул AI"
-            >
-              <Mic size={14} className="text-amber-400" />
-              <span className="hidden sm:inline text-[11px]">Голос AI</span>
-            </button>
-          )}
 
           {/* User Auth */}
           {user ? (
-            <div className="flex items-center gap-1.5 pl-1.5 pr-1 py-1 rounded-xl bg-black/40 border border-white/10">
+            <div className="flex items-center gap-1 pl-1 pr-1 py-0.5 rounded-xl bg-black/40 border border-white/10">
               {user.photoURL ? (
-                <img src={user.photoURL} alt="" className="w-6 h-6 rounded-full border border-amber-500/30" />
+                <img src={user.photoURL} alt="" className="w-5 h-5 rounded-full border border-amber-500/30" />
               ) : (
-                <div className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 text-[10px]">
-                  <UserIcon size={12} />
+                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 text-[9px]">
+                  <UserIcon size={10} />
                 </div>
               )}
-              <span className="text-[10px] text-slate-300 font-medium max-w-[70px] truncate hidden sm:inline">
-                {user.displayName?.split(' ')[0]}
-              </span>
               <button 
                 onClick={onSignOut} 
                 className="p-1 hover:text-red-400 text-slate-400 transition-colors" 
                 title="Выйти"
               >
-                <LogOut size={13} />
+                <LogOut size={11} />
               </button>
             </div>
           ) : (
             <button 
               onClick={onSignIn}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500 hover:text-black text-xs font-bold transition-all cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500 hover:text-black text-[11px] font-bold transition-all cursor-pointer"
             >
-              <LogIn size={13} />
-              <span className="text-[11px] hidden sm:inline">Войти</span>
+              <LogIn size={11} />
+              <span className="hidden sm:inline">Войти</span>
             </button>
           )}
 
@@ -360,10 +325,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               onTriggerHaptic?.(10);
               onOpenSidebar();
             }}
-            className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-gradient-to-r from-[#151c2e] to-[#0c101d] border border-amber-500/40 text-amber-300 hover:border-amber-400 hover:bg-amber-500/20 transition-all cursor-pointer shadow-sm"
-            title="Все 21 раздел приложения"
+            className="flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1 rounded-xl bg-gradient-to-r from-[#151c2e] to-[#0c101d] border border-amber-500/40 text-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer"
+            title="Все разделы"
           >
-            <Layers size={16} className="text-amber-400" />
+            <Layers size={14} className="text-amber-400" />
             <span className="text-[11px] font-serif font-bold uppercase hidden md:inline">
               Меню
             </span>

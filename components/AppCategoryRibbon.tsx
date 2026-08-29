@@ -82,27 +82,12 @@ export const AppCategoryRibbon: React.FC<AppCategoryRibbonProps> = ({
   }, [activeTab]);
 
   return (
-    <div className="w-full bg-[#070c17]/90 border-b border-white/5 py-2 px-2 sticky top-[53px] z-30 backdrop-blur-xl no-print">
+    <div className="w-full bg-[#070c17]/90 border-b border-white/5 py-1.5 px-2 sticky top-[45px] z-30 backdrop-blur-xl no-print">
       <div 
         ref={containerRef}
-        className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth px-2 max-w-7xl mx-auto"
+        className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth px-1 max-w-7xl mx-auto"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {/* Fortune Wheel & Shop Quick Action Chip */}
-        <button
-          onClick={() => {
-            onTriggerHaptic?.(12);
-            window.dispatchEvent(new CustomEvent('chubuk_open_usage_limit_modal', { detail: { tab: 'wheel' } }));
-          }}
-          className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-gradient-to-r from-amber-500/20 via-purple-500/25 to-emerald-500/20 text-amber-200 border border-amber-500/40 hover:border-amber-400 hover:brightness-110 shadow-sm transition-all duration-200 cursor-pointer shrink-0"
-        >
-          <span className="text-xs leading-none">🎡</span>
-          <span className="font-serif tracking-tight">Колесо & Попытки</span>
-          <span className="text-[8px] font-black px-1.2 py-0.2 rounded-full uppercase bg-amber-500/30 text-amber-300 border border-amber-500/40">
-            10к:3
-          </span>
-        </button>
-
         {visibleCategories.map((item) => {
           const isSelected = activeTab === item.id;
           return (
@@ -113,23 +98,17 @@ export const AppCategoryRibbon: React.FC<AppCategoryRibbonProps> = ({
                 onTriggerHaptic?.(8);
                 onSelectTab(item.id);
               }}
-              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 ${
+              className={`relative flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 ${
                 isSelected
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold shadow-[0_0_15px_rgba(245,158,11,0.35)]'
+                  ? 'bg-amber-500 text-black font-bold shadow-md'
                   : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white border border-white/5'
               }`}
             >
               <span className="text-xs leading-none">{item.icon}</span>
               <span className="font-serif tracking-tight">{item.shortLabel}</span>
               
-              {item.badge && (
-                <span
-                  className={`text-[8px] font-black px-1.2 py-0.2 rounded-full uppercase ${
-                    isSelected
-                      ? 'bg-black text-amber-300'
-                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                  }`}
-                >
+              {item.badge && !isSelected && (
+                <span className="text-[8px] font-black px-1 py-0.2 rounded-full uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   {item.badge}
                 </span>
               )}

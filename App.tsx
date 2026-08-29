@@ -471,68 +471,57 @@ export const App: React.FC = () => {
         />
 
         {/* Main Application Screen Container */}
-        <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-28 lg:pb-20">
+        <main className="relative z-10 flex-1 max-w-6xl w-full mx-auto px-2.5 sm:px-4 py-3 sm:py-5 pb-24 lg:pb-16">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
               className="w-full flex flex-col items-center"
             >
               <Suspense fallback={
-                <div className="flex flex-col items-center justify-center py-24 gap-3">
-                  <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+                <div className="flex flex-col items-center justify-center py-20 gap-2.5">
+                  <Loader2 className="w-7 h-7 text-amber-500 animate-spin" />
                   <p className="text-amber-400/80 text-xs font-serif uppercase tracking-widest">
                     Синхронизация энергий...
                   </p>
                 </div>
               }>
                 {activeTab === 'matrix' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1 flex flex-col items-center space-y-6">
+                  <div className="w-full flex flex-col items-center space-y-4 sm:space-y-5">
                     {/* Active Profile Status Header Bar */}
                     {userInput && matrix ? (
-                      <div className="w-full p-3 sm:p-4 rounded-3xl bg-gradient-to-r from-[#0e1628] via-[#090e1c] to-[#0e1628] border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-serif font-black text-lg sm:text-xl flex items-center justify-center shrink-0">
+                      <div className="w-full p-2.5 sm:p-3.5 rounded-2xl bg-gradient-to-r from-[#0e1628]/90 via-[#090e1c]/90 to-[#0e1628]/90 border border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shadow-md">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 font-serif font-black text-base sm:text-lg flex items-center justify-center shrink-0">
                             {matrix.center}
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="font-serif font-bold text-white text-sm sm:text-base truncate">{userInput.name}</h3>
-                              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold shrink-0">
+                              <h3 className="font-serif font-bold text-white text-xs sm:text-sm truncate">{userInput.name}</h3>
+                              <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold shrink-0">
                                 {userInput.birthDate}
                               </span>
                             </div>
-                            <p className="text-[11px] sm:text-xs text-slate-400 truncate">
-                              Центр: <strong className="text-amber-300">{matrix.center}</strong> • Предназначение: <strong className="text-amber-300">{matrix.destiny}</strong> • Небо/Земля: <strong className="text-amber-300">{matrix.sky}/{matrix.earth}</strong>
+                            <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
+                              Центр: <strong className="text-amber-300">{matrix.center}</strong> • Предназначение: <strong className="text-amber-300">{matrix.destiny}</strong>
                             </p>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-end flex-wrap">
+                        <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end flex-wrap">
                           <button
                             onClick={() => {
                               triggerHaptic(10);
                               setIsOnboardingOpen(true);
                             }}
-                            className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 text-xs font-serif font-bold flex items-center gap-1 cursor-pointer"
-                            title="Открыть обучение по значениям Матрицы"
+                            className="px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 text-xs font-serif font-bold flex items-center gap-1 cursor-pointer"
+                            title="Гид по Матрице"
                           >
-                            <Compass size={13} />
+                            <Compass size={12} />
                             <span>Гид</span>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              triggerHaptic(10);
-                              setActiveTab('wallpapers');
-                            }}
-                            className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-purple-950/40 border border-purple-500/40 text-purple-300 hover:bg-purple-900/50 text-xs font-serif font-bold flex items-center gap-1 cursor-pointer"
-                          >
-                            <Smartphone size={13} />
-                            <span>Обои</span>
                           </button>
 
                           <button
@@ -540,9 +529,9 @@ export const App: React.FC = () => {
                               triggerHaptic(10);
                               setActiveTab('daily');
                             }}
-                            className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500 hover:text-black text-xs font-serif font-bold flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500 hover:text-black text-xs font-serif font-bold flex items-center gap-1 cursor-pointer"
                           >
-                            <Sun size={13} />
+                            <Sun size={12} />
                             <span>Прогноз</span>
                           </button>
                         </div>
@@ -550,12 +539,12 @@ export const App: React.FC = () => {
                     ) : null}
 
                     {/* Calculation & Matrix Visual Card Container */}
-                    <div ref={calculatorRef} className="w-full grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4 sm:gap-6 items-start">
+                    <div ref={calculatorRef} className="w-full grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3 sm:gap-5 items-start">
                       <div className="w-full">
                         <InputForm onSubmit={handleCalculate} isLoading={loading} />
                       </div>
                       
-                      <div className="w-full flex flex-col items-center justify-start p-3 sm:p-5 rounded-3xl bg-[#070b16]/70 border border-white/5 shadow-inner">
+                      <div className="w-full flex flex-col items-center justify-start p-2.5 sm:p-4 rounded-2xl bg-[#070b16]/70 border border-white/5 shadow-inner">
                         {matrix ? (
                           <MatrixVisual 
                             matrix={matrix} 
@@ -563,9 +552,9 @@ export const App: React.FC = () => {
                             onOpenGuide={() => setIsOnboardingOpen(true)}
                           />
                         ) : (
-                          <div className="flex flex-col items-center justify-center text-center p-8 opacity-40 space-y-2 min-h-[280px]">
-                            <Sparkles size={36} className="text-amber-400 animate-pulse" />
-                            <p className="font-serif text-sm text-slate-300">Введите дату рождения для построения 22 арканов матрицы</p>
+                          <div className="flex flex-col items-center justify-center text-center p-6 opacity-40 space-y-2 min-h-[220px]">
+                            <Sparkles size={30} className="text-amber-400 animate-pulse" />
+                            <p className="font-serif text-xs text-slate-300">Введите дату рождения для построения 22 арканов матрицы</p>
                           </div>
                         )}
                       </div>
@@ -586,7 +575,7 @@ export const App: React.FC = () => {
 
                     {/* Detailed Analysis Results & PDF Export */}
                     {analysis && (
-                      <div ref={resultsRef} className="w-full space-y-6 animate-fade-in-up">
+                      <div ref={resultsRef} className="w-full space-y-4 animate-fade-in-up">
                         <AnalysisResults analysis={analysis} userInput={userInput} matrix={matrix} astrology={astrology} />
                         <OrderSection 
                           userInput={userInput} 
@@ -600,7 +589,7 @@ export const App: React.FC = () => {
                     )}
                   </div>
                 ) : activeTab === 'lifespan' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <LifespanSection 
                       userInput={userInput} 
                       matrix={matrix} 
@@ -609,7 +598,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'psychology' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <PsychologicalPortraitSection 
                       userInput={userInput} 
                       matrix={matrix} 
@@ -617,7 +606,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'caching' || (activeTab as string) === 'cooking' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <CachingSection 
                       userInput={userInput} 
                       matrix={matrix} 
@@ -626,7 +615,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'meditation' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <MeditationCenter 
                       userInput={userInput} 
                       matrix={matrix} 
@@ -635,7 +624,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'daily' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <DailyForecastSection 
                       initialUserInput={userInput} 
                       onSaveBirthDate={(input) => {
@@ -654,7 +643,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'tapper' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <KarmaTapperSection 
                       userInput={userInput} 
                       matrix={matrix} 
@@ -668,58 +657,58 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'wallpapers' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <SacredWallpapersSection userInput={userInput} matrix={matrix} />
                   </div>
                 ) : activeTab === 'chakras' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <ChakrasSection userInput={userInput} matrix={matrix} />
                   </div>
                 ) : activeTab === 'akashic' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <AkashicRecordsSection userInput={userInput} matrix={matrix} />
                   </div>
                 ) : activeTab === 'powercal' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <PowerCalendarSection userInput={userInput} matrix={matrix} />
                   </div>
                 ) : activeTab === 'lunar' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <LunarCalendarSection />
                   </div>
                 ) : activeTab === 'elective' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <ElectiveDatesSection 
                       userInput={userInput} 
                       onOpenNotifications={() => setIsNotificationModalOpen(true)}
                     />
                   </div>
                 ) : activeTab === 'ancestral' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <AncestralLineageSection userInput={userInput} matrix={matrix} />
                   </div>
                 ) : activeTab === 'litho' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <LithotherapySection userInput={userInput} matrix={matrix} astrology={astrology} />
                   </div>
                 ) : activeTab === 'dreams' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <DreamOracleSection userInput={userInput} matrix={matrix} />
                   </div>
                 ) : activeTab === 'cities' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <CitiesOfPowerSection userInput={userInput} matrix={matrix} astrology={astrology} />
                   </div>
                 ) : activeTab === 'astrology' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <AstrologySection userInput={userInput} />
                   </div>
                 ) : activeTab === 'compatibility' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <CompatibilitySection user1={{ input: userInput, matrix, astrology }} onSave={(res) => saveReading({ compatibility: res })} />
                   </div>
                 ) : activeTab === 'horary' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <HorarySection 
                       userInput={userInput} 
                       onSave={(res) => saveReading({ horary: res })} 
@@ -727,7 +716,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'faq' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <FaqSection 
                       userInput={userInput} 
                       matrix={matrix} 
@@ -745,7 +734,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : activeTab === 'admin' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     {isUserAdmin(user) ? (
                       <AdminPanelSection 
                         user={user} 
@@ -753,17 +742,17 @@ export const App: React.FC = () => {
                         onTriggerHaptic={triggerHaptic}
                       />
                     ) : (
-                      <div className="p-8 text-center bg-black/60 rounded-3xl border border-amber-500/30 max-w-lg mx-auto space-y-4 my-12">
-                        <div className="w-16 h-16 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mx-auto text-2xl">
+                      <div className="p-6 text-center bg-black/60 rounded-2xl border border-amber-500/30 max-w-lg mx-auto space-y-3 my-8">
+                        <div className="w-12 h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mx-auto text-xl">
                           🔒
                         </div>
-                        <h3 className="font-serif font-bold text-xl text-white">Доступ ограничен</h3>
-                        <p className="text-sm text-slate-300">
+                        <h3 className="font-serif font-bold text-lg text-white">Доступ ограничен</h3>
+                        <p className="text-xs text-slate-300">
                           Панель создателя защищена мастер-паролем. Для входа введите секретный ключ.
                         </p>
                         <button
                           onClick={() => setIsAdminAuthModalOpen(true)}
-                          className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold text-sm shadow-lg hover:brightness-110 cursor-pointer"
+                          className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold text-xs shadow-lg hover:brightness-110 cursor-pointer"
                         >
                           Ввести пароль администратора
                         </button>
@@ -771,7 +760,7 @@ export const App: React.FC = () => {
                     )}
                   </div>
                 ) : activeTab === 'profile' ? (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <ProfileSection 
                       userInput={userInput} 
                       savedCalculations={savedCalculations}
@@ -789,7 +778,7 @@ export const App: React.FC = () => {
                     />
                   </div>
                 ) : (
-                  <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
+                  <div className="w-full">
                     <TarotSection 
                       userInput={userInput} 
                       matrix={matrix} 

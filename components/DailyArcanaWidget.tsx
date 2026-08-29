@@ -403,33 +403,6 @@ export const DailyArcanaWidget: React.FC<DailyArcanaWidgetProps> = ({
 
         </div>
       </div>
-
-      {/* Quick Access Action Banner to Numerologist Chat */}
-      <div className="mt-4 pt-3.5 border-t border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-black/25 -mx-5 -mb-5 md:-mx-6 md:-mb-6 p-4 rounded-b-3xl">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-black shadow-md shrink-0">
-            <MessageSquare size={15} />
-          </div>
-          <div>
-            <span className="text-xs font-serif font-bold text-white block">
-              Вопрос Чубуку о влиянии дня
-            </span>
-            <span className="text-[11px] text-slate-400 block font-sans">
-              Персональный нумерологический совет для ваших сделок, работы и планов
-            </span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleAskAboutDay}
-          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-black text-xs font-serif font-black flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-98 transition-all cursor-pointer shrink-0"
-        >
-          <Sparkles size={13} className="fill-black text-black" />
-          <span>Что означает мой аркан дня для моих текущих дел?</span>
-          <ArrowRight size={13} />
-        </button>
-      </div>
     </div>
   );
 };
