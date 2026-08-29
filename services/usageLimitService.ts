@@ -527,6 +527,25 @@ export const convertChubukCoinsToAttempts = (pkg: CryptoPackage): {
       addBonusAttempts(pkg.attempts, `Конвертация ${pkg.coinsCost} $CHUBUK`);
     }
 
+    // Record in transaction history
+    try {
+      const historyRaw = localStorage.getItem('chubuk_topup_transactions_history_v1');
+      const history = historyRaw ? JSON.parse(historyRaw) : [];
+      history.unshift({
+        id: `tx-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        type: 'crypto_swap',
+        title: `Обмен токенов $CHUBUK: ${pkg.title}`,
+        amountAttempts: pkg.isVip ? 999 : pkg.attempts,
+        amountCoins: -pkg.coinsCost,
+        priceFormatted: `${pkg.coinsCost.toLocaleString('ru-RU')} $CHUBUK`,
+        timestamp: Date.now(),
+        status: 'completed',
+        details: pkg.bonusText || 'Успешная конвертация карма-токенов'
+      });
+      localStorage.setItem('chubuk_topup_transactions_history_v1', JSON.stringify(history.slice(0, 50)));
+      window.dispatchEvent(new CustomEvent('chubuk_topup_history_updated'));
+    } catch {}
+
     window.dispatchEvent(new CustomEvent('chubuk_coins_updated', { detail: { coins: state.coins } }));
     window.dispatchEvent(new CustomEvent('chubuk_usage_updated'));
 
@@ -610,6 +629,25 @@ export const spinWheelAndClaimReward = (costType: 'free' | 'coins'): {
     window.dispatchEvent(new CustomEvent('chubuk_admin_state_changed', { detail: { isVip: true } }));
   }
 
+  // Record transaction in history
+  try {
+    const historyRaw = localStorage.getItem('chubuk_topup_transactions_history_v1');
+    const history = historyRaw ? JSON.parse(historyRaw) : [];
+    history.unshift({
+      id: `tx-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      type: 'wheel_reward',
+      title: `Колесо Фортуны: ${wonSector.label}`,
+      amountAttempts: wonSector.type === 'attempts' ? wonSector.amount : (wonSector.type === 'vip' ? 999 : 0),
+      amountCoins: wonSector.type === 'coins' ? wonSector.amount : 0,
+      priceFormatted: costType === 'free' ? 'Бесплатный спин' : '2,000 $CHUBUK',
+      timestamp: Date.now(),
+      status: 'completed',
+      details: wonSector.description
+    });
+    localStorage.setItem('chubuk_topup_transactions_history_v1', JSON.stringify(history.slice(0, 50)));
+    window.dispatchEvent(new CustomEvent('chubuk_topup_history_updated'));
+  } catch {}
+
   window.dispatchEvent(new CustomEvent('chubuk_usage_updated'));
 
   return {
@@ -660,6 +698,25 @@ export const completePartnerTask = (taskId: string): {
     // Award attempts & coins
     addBonusAttempts(task.rewardAttempts, `Партнерка: ${task.title}`);
     addTapperCoins(task.rewardCoins);
+
+    // Record in transaction history
+    try {
+      const historyRaw = localStorage.getItem('chubuk_topup_transactions_history_v1');
+      const history = historyRaw ? JSON.parse(historyRaw) : [];
+      history.unshift({
+        id: `tx-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        type: 'partner_task',
+        title: `Партнерское задание: ${task.title}`,
+        amountAttempts: task.rewardAttempts,
+        amountCoins: task.rewardCoins,
+        priceFormatted: 'Партнерский оффер',
+        timestamp: Date.now(),
+        status: 'completed',
+        details: task.description
+      });
+      localStorage.setItem('chubuk_topup_transactions_history_v1', JSON.stringify(history.slice(0, 50)));
+      window.dispatchEvent(new CustomEvent('chubuk_topup_history_updated'));
+    } catch {}
 
     return {
       success: true,
@@ -725,6 +782,23 @@ export const processMoneyPayment = (
     const receipts = receiptsRaw ? JSON.parse(receiptsRaw) : [];
     receipts.unshift(receipt);
     localStorage.setItem('chubuk_payment_receipts_v1', JSON.stringify(receipts.slice(0, 20)));
+
+    // Also record in topup transaction log
+    const historyRaw = localStorage.getItem('chubuk_topup_transactions_history_v1');
+    const history = historyRaw ? JSON.parse(historyRaw) : [];
+    history.unshift({
+      id: receipt.orderId,
+      type: 'purchase_rub',
+      title: `Покупка: ${pkg.title}`,
+      amountAttempts: pkg.isVip ? 999 : pkg.attempts,
+      amountCoins: pkg.bonusCoins || 0,
+      priceFormatted: `${pkg.priceRub} ₽ (${method.toUpperCase()})`,
+      timestamp: receipt.timestamp,
+      status: 'completed',
+      details: pkg.description
+    });
+    localStorage.setItem('chubuk_topup_transactions_history_v1', JSON.stringify(history.slice(0, 50)));
+    window.dispatchEvent(new CustomEvent('chubuk_topup_history_updated'));
   } catch {}
 
   return receipt;

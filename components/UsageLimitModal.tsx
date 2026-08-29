@@ -17,7 +17,8 @@ import {
   Zap,
   TrendingUp,
   Award,
-  CircleDot
+  CircleDot,
+  Wallet
 } from 'lucide-react';
 import { 
   CRYPTO_PACKAGES, 
@@ -44,6 +45,7 @@ import {
   FortuneWheelSector,
   PaymentReceipt
 } from '../services/usageLimitService';
+import { CryptoPaymentGateway } from './CryptoPaymentGateway';
 
 interface UsageLimitModalProps {
   isOpen: boolean;
@@ -51,7 +53,7 @@ interface UsageLimitModalProps {
   onOpenAdminAuth: () => void;
   onSuccessVipUnlock?: () => void;
   onTriggerHaptic?: (pattern?: number | number[]) => void;
-  initialTab?: 'crypto' | 'wheel' | 'partner' | 'money' | 'promo';
+  initialTab?: 'crypto' | 'wheel' | 'partner' | 'money' | 'promo' | 'crypto_pay';
 }
 
 export const UsageLimitModal: React.FC<UsageLimitModalProps> = ({
@@ -62,7 +64,7 @@ export const UsageLimitModal: React.FC<UsageLimitModalProps> = ({
   onTriggerHaptic,
   initialTab = 'crypto'
 }) => {
-  const [activeTab, setActiveTab] = useState<'crypto' | 'wheel' | 'partner' | 'money' | 'promo'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'crypto' | 'wheel' | 'partner' | 'money' | 'promo' | 'crypto_pay'>(initialTab);
   
   // Balances & States
   const [coins, setCoins] = useState<number>(0);
@@ -451,6 +453,19 @@ export const UsageLimitModal: React.FC<UsageLimitModalProps> = ({
           >
             <CreditCard size={14} />
             <span>Оплата Рублями / СБП</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setActiveTab('crypto_pay'); onTriggerHaptic?.(10); }}
+            className={`px-3 py-2 rounded-xl text-xs font-medium font-serif flex items-center gap-1.5 whitespace-nowrap transition-all cursor-pointer ${
+              activeTab === 'crypto_pay'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold shadow-[0_0_15px_rgba(245,158,11,0.3)]'
+                : 'bg-white/5 hover:bg-white/10 text-slate-300'
+            }`}
+          >
+            <Wallet size={14} />
+            <span>Криптошлюз (USDT/BTC/ETH)</span>
           </button>
 
           <button
@@ -845,6 +860,21 @@ export const UsageLimitModal: React.FC<UsageLimitModalProps> = ({
                   <span>Ввести Мастер-Пароль 👑</span>
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB 6: CRYPTO PAYMENT GATEWAY (USDT/BTC/ETH)              */}
+          {/* ========================================================= */}
+          {activeTab === 'crypto_pay' && (
+            <div className="space-y-4 animate-fade-in">
+              <CryptoPaymentGateway
+                onSuccessPayment={(attempts, tx) => {
+                  updateAllStats();
+                  showToast(`Криптодепозит подтвержден! Зачислено +${attempts} попыток.`, 'success');
+                }}
+                onTriggerHaptic={onTriggerHaptic}
+              />
             </div>
           )}
 

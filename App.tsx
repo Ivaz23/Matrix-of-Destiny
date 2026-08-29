@@ -101,7 +101,7 @@ export const App: React.FC = () => {
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [isAdminAuthModalOpen, setIsAdminAuthModalOpen] = useState(false);
   const [isUsageLimitModalOpen, setIsUsageLimitModalOpen] = useState(false);
-  const [usageLimitModalTab, setUsageLimitModalTab] = useState<'crypto' | 'wheel' | 'partner' | 'money' | 'promo'>('crypto');
+  const [usageLimitModalTab, setUsageLimitModalTab] = useState<'crypto' | 'wheel' | 'partner' | 'money' | 'promo' | 'crypto_pay'>('crypto');
   const [localCalculations, setLocalCalculations] = useState<SavedCalculation[]>([]);
   
   const savedCalculations = user ? dbCalculations : localCalculations;
@@ -782,6 +782,10 @@ export const App: React.FC = () => {
                         showToast(`Синхронизировано ${count} расчетов с облаком`);
                       }}
                       onOpenNotifications={() => setIsNotificationModalOpen(true)}
+                      onOpenUsageLimitModal={(tab) => {
+                        if (tab) setUsageLimitModalTab(tab);
+                        setIsUsageLimitModalOpen(true);
+                      }}
                     />
                   </div>
                 ) : (
