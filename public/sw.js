@@ -124,10 +124,17 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // Skip Firebase Auth, Firestore real-time websockets, and Gemini API backend calls from static caching
+  // Skip Vite dev server modules, hot updates, API calls, and Firebase
   if (
-    url.pathname.startsWith('/api/gemini') || 
-    url.pathname.startsWith('/api/proxy') ||
+    url.pathname.includes('/@vite') ||
+    url.pathname.includes('/@fs') ||
+    url.pathname.includes('/@id') ||
+    url.pathname.endsWith('.tsx') ||
+    url.pathname.endsWith('.ts') ||
+    url.pathname.includes('node_modules') ||
+    url.search.includes('t=') ||
+    url.search.includes('v=') ||
+    url.pathname.startsWith('/api/') || 
     url.hostname.includes('firebaseio.com') ||
     url.hostname.includes('firestore.googleapis.com') ||
     url.hostname.includes('identitytoolkit.googleapis.com') ||

@@ -370,7 +370,7 @@ export const App: React.FC = () => {
     showToast("Данные профиля очищены");
   };
 
-  if (!isAppReady || authLoading) {
+  if (!isAppReady) {
     return (
       <div className="min-h-screen bg-[#050a14] flex flex-col items-center justify-center text-amber-500">
         <motion.div 
@@ -550,6 +550,7 @@ export const App: React.FC = () => {
                             matrix={matrix} 
                             userInput={userInput} 
                             onOpenGuide={() => setIsOnboardingOpen(true)}
+                            savedCalculations={savedCalculations}
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center text-center p-6 opacity-40 space-y-2 min-h-[220px]">
