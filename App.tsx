@@ -35,8 +35,11 @@ import { AuthModal } from './components/AuthModal';
 import { MatrixOnboardingGuide } from './components/MatrixOnboardingGuide';
 import { PushNotificationModal } from './components/PushNotificationModal';
 import { AppSidebarNavigation, AppNavTabId } from './components/AppSidebarNavigation';
+import { SecretAdminModal } from './components/SecretAdminModal';
+import { UsageLimitModal } from './components/UsageLimitModal';
 import { useAndroidInstall } from './hooks/useAndroidInstall';
 import { checkAndTriggerScheduledNotifications } from './services/notificationService';
+import { checkCanPerformAction, recordActionUsage, isUserAdmin } from './services/usageLimitService';
 
 // Lazy load heavy section modules
 const OrderSection = lazy(() => import('./components/OrderSection'));
@@ -96,6 +99,8 @@ export const App: React.FC = () => {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isVoiceChatOpen, setIsVoiceChatOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [isAdminAuthModalOpen, setIsAdminAuthModalOpen] = useState(false);
+  const [isUsageLimitModalOpen, setIsUsageLimitModalOpen] = useState(false);
   const [localCalculations, setLocalCalculations] = useState<SavedCalculation[]>([]);
   
   const savedCalculations = user ? dbCalculations : localCalculations;
@@ -220,6 +225,17 @@ export const App: React.FC = () => {
 
   const handleCalculate = async (input: UserInput) => {
     triggerHaptic(20);
+
+    // Enforce daily usage limit for non-admin/VIP users
+    const check = checkCanPerformAction(user);
+    if (!check.allowed) {
+      setIsUsageLimitModalOpen(true);
+      return;
+    }
+
+    // Record action consumption
+    recordActionUsage(user);
+
     setLoading(true);
     setError(null);
     setAnalysis(null);
@@ -391,11 +407,17 @@ export const App: React.FC = () => {
           activeTab={activeTab}
           onSelectTab={(tabId) => {
             triggerHaptic(8);
+            if (tabId === 'admin' && !isUserAdmin(user)) {
+              setIsAdminAuthModalOpen(true);
+              return;
+            }
             setActiveTab(tabId);
           }}
           onOpenSidebar={() => setIsMenuOpen(true)}
           onOpenAndroidModal={() => setIsAndroidModalOpen(true)}
           onOpenNotifications={() => setIsNotificationModalOpen(true)}
+          onOpenAdminAuth={() => setIsAdminAuthModalOpen(true)}
+          onOpenUsageLimitModal={() => setIsUsageLimitModalOpen(true)}
           user={user}
           onSignIn={() => setIsAuthModalOpen(true)}
           onSignOut={signOut}
@@ -409,6 +431,10 @@ export const App: React.FC = () => {
           activeTab={activeTab}
           onSelectTab={(tabId) => {
             triggerHaptic(8);
+            if (tabId === 'admin' && !isUserAdmin(user)) {
+              setIsAdminAuthModalOpen(true);
+              return;
+            }
             setActiveTab(tabId);
           }}
           onTriggerHaptic={triggerHaptic}
@@ -419,12 +445,19 @@ export const App: React.FC = () => {
           isOpen={isMenuOpen}
           onClose={() => setIsMenuOpen(false)}
           activeTab={activeTab}
-          onSelectTab={(tabId) => setActiveTab(tabId)}
+          onSelectTab={(tabId) => {
+            if (tabId === 'admin' && !isUserAdmin(user)) {
+              setIsAdminAuthModalOpen(true);
+              return;
+            }
+            setActiveTab(tabId);
+          }}
           user={user}
           onSignIn={signIn}
           onSignOut={signOut}
           onOpenAndroidModal={() => setIsAndroidModalOpen(true)}
           onOpenNotifications={() => setIsNotificationModalOpen(true)}
+          onOpenAdminAuth={() => setIsAdminAuthModalOpen(true)}
         />
 
         {/* Main Application Screen Container */}
@@ -673,7 +706,11 @@ export const App: React.FC = () => {
                   </div>
                 ) : activeTab === 'horary' ? (
                   <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
-                    <HorarySection userInput={userInput} onSave={(res) => saveReading({ horary: res })} />
+                    <HorarySection 
+                      userInput={userInput} 
+                      onSave={(res) => saveReading({ horary: res })} 
+                      onOpenUsageLimitModal={() => setIsUsageLimitModalOpen(true)}
+                    />
                   </div>
                 ) : activeTab === 'faq' ? (
                   <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
@@ -695,11 +732,29 @@ export const App: React.FC = () => {
                   </div>
                 ) : activeTab === 'admin' ? (
                   <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
-                    <AdminPanelSection 
-                      user={user} 
-                      savedCalculations={savedCalculations}
-                      onTriggerHaptic={triggerHaptic}
-                    />
+                    {isUserAdmin(user) ? (
+                      <AdminPanelSection 
+                        user={user} 
+                        savedCalculations={savedCalculations}
+                        onTriggerHaptic={triggerHaptic}
+                      />
+                    ) : (
+                      <div className="p-8 text-center bg-black/60 rounded-3xl border border-amber-500/30 max-w-lg mx-auto space-y-4 my-12">
+                        <div className="w-16 h-16 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mx-auto text-2xl">
+                          🔒
+                        </div>
+                        <h3 className="font-serif font-bold text-xl text-white">Доступ ограничен</h3>
+                        <p className="text-sm text-slate-300">
+                          Панель создателя защищена мастер-паролем. Для входа введите секретный ключ.
+                        </p>
+                        <button
+                          onClick={() => setIsAdminAuthModalOpen(true)}
+                          className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold text-sm shadow-lg hover:brightness-110 cursor-pointer"
+                        >
+                          Ввести пароль администратора
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : activeTab === 'profile' ? (
                   <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
@@ -717,7 +772,12 @@ export const App: React.FC = () => {
                   </div>
                 ) : (
                   <div className="w-[95%] sm:w-[90%] lg:max-w-7xl h-[calc(100vh-150px)] overflow-y-auto pr-1">
-                    <TarotSection userInput={userInput} matrix={matrix} onSave={(res) => saveReading({ tarot: res })} />
+                    <TarotSection 
+                      userInput={userInput} 
+                      matrix={matrix} 
+                      onSave={(res) => saveReading({ tarot: res })} 
+                      onOpenUsageLimitModal={() => setIsUsageLimitModalOpen(true)}
+                    />
                   </div>
                 )}
               </Suspense>
@@ -763,6 +823,23 @@ export const App: React.FC = () => {
         <AuthModal
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
+        />
+
+        {/* Secret Master Admin Password Modal */}
+        <SecretAdminModal
+          isOpen={isAdminAuthModalOpen}
+          onClose={() => setIsAdminAuthModalOpen(false)}
+          onSuccess={() => {
+            setActiveTab('admin');
+            showToast("Доступ Администратора Master разблокирован (Безлимит активен)");
+          }}
+        />
+
+        {/* Daily Usage Limits & VIP Promo Modal */}
+        <UsageLimitModal
+          isOpen={isUsageLimitModalOpen}
+          onClose={() => setIsUsageLimitModalOpen(false)}
+          onOpenAdminAuth={() => setIsAdminAuthModalOpen(true)}
         />
 
         {/* Matrix of Destiny Onboarding Guide Coach Marks */}

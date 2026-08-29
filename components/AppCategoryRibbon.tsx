@@ -1,25 +1,7 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Sparkles, 
-  Sun, 
-  Smartphone, 
-  Layers, 
-  Scroll, 
-  Zap, 
-  Moon, 
-  Calendar, 
-  Users, 
-  Gem, 
-  Eye, 
-  Compass, 
-  Compass as CompassIcon,
-  Heart, 
-  Flame, 
-  Clock, 
-  User
-} from 'lucide-react';
 import { AppNavTabId } from './AppSidebarNavigation';
+import { isUserAdmin } from '../services/usageLimitService';
 
 interface AppCategoryRibbonProps {
   activeTab: AppNavTabId;
@@ -34,6 +16,7 @@ interface CategoryItem {
   icon: string;
   badge?: string;
   highlight?: boolean;
+  adminOnly?: boolean;
 }
 
 const CATEGORIES: CategoryItem[] = [
@@ -60,7 +43,7 @@ const CATEGORIES: CategoryItem[] = [
   { id: 'elective', label: 'Элективные Даты', shortLabel: 'Электив', icon: '📅' },
   { id: 'faq', label: 'FAQ (База Знаний)', shortLabel: 'FAQ ❓', icon: '❓', highlight: true },
   { id: 'profile', label: 'Мой Профиль', shortLabel: 'Профиль', icon: '👤' },
-  { id: 'admin', label: 'Админ-Панель', shortLabel: 'Админка 👑', icon: '👑', badge: 'VIP' },
+  { id: 'admin', label: 'Админ-Панель', shortLabel: 'Админка 👑', icon: '👑', badge: 'VIP', adminOnly: true },
 ];
 
 export const AppCategoryRibbon: React.FC<AppCategoryRibbonProps> = ({
@@ -70,6 +53,17 @@ export const AppCategoryRibbon: React.FC<AppCategoryRibbonProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const activeBtnRef = useRef<HTMLButtonElement>(null);
+  const [isAdmin, setIsAdmin] = useState(() => isUserAdmin());
+
+  useEffect(() => {
+    const handleAdminChange = () => {
+      setIsAdmin(isUserAdmin());
+    };
+    window.addEventListener('chubuk_admin_state_changed', handleAdminChange);
+    return () => window.removeEventListener('chubuk_admin_state_changed', handleAdminChange);
+  }, []);
+
+  const visibleCategories = CATEGORIES.filter(cat => !cat.adminOnly || isAdmin);
 
   // Auto scroll into view when active tab changes
   useEffect(() => {
@@ -94,7 +88,7 @@ export const AppCategoryRibbon: React.FC<AppCategoryRibbonProps> = ({
         className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth px-2 max-w-7xl mx-auto"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {CATEGORIES.map((item) => {
+        {visibleCategories.map((item) => {
           const isSelected = activeTab === item.id;
           return (
             <button

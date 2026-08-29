@@ -22,10 +22,12 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { checkCanPerformAction, recordActionUsage } from '../services/usageLimitService';
 
 interface HorarySectionProps {
   userInput: UserInput | null;
   onSave?: (result: HoraryResult) => void;
+  onOpenUsageLimitModal?: () => void;
 }
 
 const PRESET_QUESTIONS = [
@@ -36,7 +38,7 @@ const PRESET_QUESTIONS = [
   "Каков истинный исход волнующей меня ситуации?"
 ];
 
-const HorarySection: React.FC<HorarySectionProps> = ({ userInput, onSave }) => {
+const HorarySection: React.FC<HorarySectionProps> = ({ userInput, onSave, onOpenUsageLimitModal }) => {
   const [question, setQuestion] = useState('');
   
   const getHoraryKey = (input: any) => {
@@ -78,6 +80,17 @@ const HorarySection: React.FC<HorarySectionProps> = ({ userInput, onSave }) => {
   const handleAsk = async (questionToAsk?: string) => {
     const q = questionToAsk || question;
     if (!q.trim()) return;
+
+    // Check usage limits for free users
+    const check = checkCanPerformAction();
+    if (!check.allowed) {
+      onOpenUsageLimitModal?.();
+      return;
+    }
+
+    // Record action consumption
+    recordActionUsage();
+
     setLoading(true);
     stopAudio();
     try {

@@ -5,14 +5,16 @@ import { generateTarotReading, FULL_TAROT_DECK, MAJOR_ARCANA, generateTarotAtmos
 import { Volume2, VolumeX, Loader2, Download } from 'lucide-react';
 import { downloadAudioForCalculation, exportTarotPdf } from '../services/exportUtils';
 import { useGlobalAudio } from '../src/hooks/useGlobalAudio';
+import { checkCanPerformAction, recordActionUsage } from '../services/usageLimitService';
 
 interface TarotSectionProps {
   userInput: UserInput | null;
   matrix: MatrixNumbers | null;
   onSave: (reading: TarotReading) => void;
+  onOpenUsageLimitModal?: () => void;
 }
 
-const TarotSection: React.FC<TarotSectionProps> = ({ userInput, matrix, onSave }) => {
+const TarotSection: React.FC<TarotSectionProps> = ({ userInput, matrix, onSave, onOpenUsageLimitModal }) => {
   const [reading, setReading] = useState<TarotReading | null>(null);
   const [isLaying, setIsLaying] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
@@ -81,6 +83,16 @@ const TarotSection: React.FC<TarotSectionProps> = ({ userInput, matrix, onSave }
   };
 
   const handleReading = async () => {
+    // Check usage limits for free users
+    const check = checkCanPerformAction();
+    if (!check.allowed) {
+      onOpenUsageLimitModal?.();
+      return;
+    }
+
+    // Record action consumption
+    recordActionUsage();
+
     stopAudio();
     setIsLaying(true);
     setReading(null);

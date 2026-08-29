@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Sparkles, 
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { AppNavTabId } from './AppSidebarNavigation';
 import { UserInput, MatrixNumbers } from '../types';
+import { isUserAdmin, getRemainingAttempts, MAX_FREE_ATTEMPTS, isVipUnlocked } from '../services/usageLimitService';
 
 interface AppHeaderProps {
   activeTab: AppNavTabId;
@@ -25,6 +26,8 @@ interface AppHeaderProps {
   onOpenAndroidModal: () => void;
   onOpenVoiceChat?: () => void;
   onOpenNotifications?: () => void;
+  onOpenAdminAuth?: () => void;
+  onOpenUsageLimitModal?: () => void;
   user: any;
   onSignIn: () => void;
   onSignOut: () => void;
@@ -68,6 +71,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenAndroidModal,
   onOpenVoiceChat,
   onOpenNotifications,
+  onOpenAdminAuth,
+  onOpenUsageLimitModal,
   user,
   onSignIn,
   onSignOut,
@@ -77,7 +82,32 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const [currentTime, setCurrentTime] = useState('');
   const [notificationsActive, setNotificationsActive] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => isUserAdmin(user));
+  const [isVip, setIsVip] = useState(() => isVipUnlocked());
+  const [remainingAttempts, setRemainingAttempts] = useState(() => getRemainingAttempts(user));
   const currentTabInfo = TAB_TITLES[activeTab] || TAB_TITLES.matrix;
+
+  const logoClickCountRef = useRef(0);
+  const logoClickTimerRef = useRef<any>(null);
+
+  const handleLogoClick = () => {
+    onTriggerHaptic?.(10);
+    logoClickCountRef.current += 1;
+    if (logoClickTimerRef.current) clearTimeout(logoClickTimerRef.current);
+    
+    if (logoClickCountRef.current >= 3) {
+      logoClickCountRef.current = 0;
+      onTriggerHaptic?.([20, 50, 80]);
+      onOpenAdminAuth?.();
+    } else {
+      logoClickTimerRef.current = setTimeout(() => {
+        if (logoClickCountRef.current < 3) {
+          onSelectTab('matrix');
+        }
+        logoClickCountRef.current = 0;
+      }, 400);
+    }
+  };
 
   useEffect(() => {
     const updateTime = () => {
@@ -97,13 +127,41 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       } catch {}
     };
     checkNotifStatus();
+
+    const handleAdminChange = () => {
+      setIsAdmin(isUserAdmin(user));
+      setIsVip(isVipUnlocked());
+      setRemainingAttempts(getRemainingAttempts(user));
+    };
+
+    const handleUsageChange = () => {
+      setRemainingAttempts(getRemainingAttempts(user));
+      setIsAdmin(isUserAdmin(user));
+      setIsVip(isVipUnlocked());
+    };
+
+    // Global keyboard shortcut: Ctrl+Shift+A or Alt+A to trigger secret admin modal
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a' || e.key === 'Ф' || e.key === 'ф')) ||
+          (e.altKey && (e.key === 'a' || e.key === 'A' || e.key === 'ф' || e.key === 'Ф'))) {
+        e.preventDefault();
+        onOpenAdminAuth?.();
+      }
+    };
+
     window.addEventListener('chubuk_notifications_updated', checkNotifStatus);
+    window.addEventListener('chubuk_admin_state_changed', handleAdminChange);
+    window.addEventListener('chubuk_usage_updated', handleUsageChange);
+    window.addEventListener('keydown', handleGlobalKeyDown);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener('chubuk_notifications_updated', checkNotifStatus);
+      window.removeEventListener('chubuk_admin_state_changed', handleAdminChange);
+      window.removeEventListener('chubuk_usage_updated', handleUsageChange);
+      window.removeEventListener('keydown', handleGlobalKeyDown);
     };
-  }, []);
+  }, [user, onOpenAdminAuth]);
 
   return (
     <header className="sticky top-0 z-40 bg-[#050a14]/95 backdrop-blur-2xl border-b border-amber-500/20 shadow-[0_4px_25px_rgba(0,0,0,0.7)] no-print safe-area-pt">
@@ -124,11 +182,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             </button>
           ) : (
             <div 
-              onClick={() => {
-                onTriggerHaptic?.(10);
-                onSelectTab('matrix');
-              }}
-              className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 text-black font-serif font-black text-lg flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.3)] shrink-0 cursor-pointer"
+              onClick={handleLogoClick}
+              title="Chubuk Matrix (Нажмите 3 раза для входа в Master Control)"
+              className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 text-black font-serif font-black text-lg flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.3)] shrink-0 cursor-pointer select-none active:scale-95 transition-transform"
             >
               C
             </div>
@@ -149,6 +205,43 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* Center/Right Status Badges */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Admin Master Badge / Usage Attempt Counter */}
+          {isAdmin || isVip ? (
+            <button
+              onClick={() => {
+                onTriggerHaptic?.(12);
+                if (isAdmin) {
+                  onSelectTab('admin');
+                } else {
+                  onOpenAdminAuth?.();
+                }
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500/20 to-purple-500/20 border border-amber-400/60 text-amber-300 hover:border-amber-300 text-xs font-serif font-bold transition-all shadow-[0_0_12px_rgba(245,158,11,0.25)] cursor-pointer"
+              title={isAdmin ? "Панель администратора: Безлимит активен" : "VIP статус: Безлимитный доступ"}
+            >
+              <span className="text-amber-400 text-sm">👑</span>
+              <span className="text-[11px] uppercase tracking-wider">{isAdmin ? 'Master (∞)' : 'VIP (∞)'}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                onTriggerHaptic?.(10);
+                onOpenUsageLimitModal?.();
+              }}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                remainingAttempts > 0
+                  ? 'bg-white/5 border-amber-500/30 text-amber-200 hover:bg-amber-500/10'
+                  : 'bg-red-500/15 border-red-500/40 text-red-300 animate-pulse'
+              }`}
+              title="Количество бесплатных попыток раскладов и расчетов на сегодня. Нажмите для ввода промокода или Master ключа"
+            >
+              <Sparkles size={13} className={remainingAttempts > 0 ? "text-amber-400" : "text-red-400"} />
+              <span className="font-mono text-[11px]">
+                {remainingAttempts > 0 ? `${remainingAttempts}/${MAX_FREE_ATTEMPTS}` : '0/3 Лимит'}
+              </span>
+            </button>
+          )}
+
           {/* Active User Energy Pill if calculated */}
           {userInput && matrix && (
             <button

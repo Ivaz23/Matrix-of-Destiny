@@ -35,6 +35,8 @@ import {
   HardDrive
 } from 'lucide-react';
 
+import { isUserAdmin } from '../services/usageLimitService';
+
 export type AppNavTabId = 
   | 'matrix' 
   | 'psychology'
@@ -71,6 +73,7 @@ interface NavCategory {
     icon: React.ComponentType<{ size?: number; className?: string }>;
     badge?: string;
     color: string;
+    adminOnly?: boolean;
   }[];
 }
 
@@ -269,7 +272,8 @@ const NAV_CATEGORIES: NavCategory[] = [
         description: 'Панель создателя: аналитика, промокоды, управление ИИ и баннерами',
         icon: ShieldAlert,
         badge: 'VIP',
-        color: '#ec4899'
+        color: '#ec4899',
+        adminOnly: true
       }
     ]
   }
@@ -285,6 +289,7 @@ interface AppSidebarNavigationProps {
   onSignOut: () => void;
   onOpenAndroidModal?: () => void;
   onOpenNotifications?: () => void;
+  onOpenAdminAuth?: () => void;
 }
 
 export const AppSidebarNavigation: React.FC<AppSidebarNavigationProps> = ({
@@ -296,9 +301,19 @@ export const AppSidebarNavigation: React.FC<AppSidebarNavigationProps> = ({
   onSignIn,
   onSignOut,
   onOpenAndroidModal,
-  onOpenNotifications
+  onOpenNotifications,
+  onOpenAdminAuth
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAdmin, setIsAdmin] = useState(() => isUserAdmin(user));
+
+  useEffect(() => {
+    const handleAdminChange = () => {
+      setIsAdmin(isUserAdmin(user));
+    };
+    window.addEventListener('chubuk_admin_state_changed', handleAdminChange);
+    return () => window.removeEventListener('chubuk_admin_state_changed', handleAdminChange);
+  }, [user]);
 
   // Close sidebar on Escape key
   useEffect(() => {
@@ -315,18 +330,20 @@ export const AppSidebarNavigation: React.FC<AppSidebarNavigationProps> = ({
     };
   }, [isOpen, onClose]);
 
-  // Filter items by search query
-  const totalSectionsCount = useMemo(() => 
-    NAV_CATEGORIES.reduce((acc, cat) => acc + cat.items.length, 0),
-  []);
-
   const filteredCategories = NAV_CATEGORIES.map(category => ({
     ...category,
-    items: category.items.filter(item => 
-      item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    items: category.items
+      .filter(item => !item.adminOnly || isAdmin)
+      .filter(item => 
+        item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+      )
   })).filter(category => category.items.length > 0);
+
+  // Filter items by search query
+  const totalSectionsCount = useMemo(() => 
+    filteredCategories.reduce((acc, cat) => acc + cat.items.length, 0),
+  [filteredCategories]);
 
   return (
     <AnimatePresence>
@@ -544,6 +561,24 @@ export const AppSidebarNavigation: React.FC<AppSidebarNavigationProps> = ({
                   <LogIn size={15} />
                   <span>Войти через Google для сохранения</span>
                 </button>
+              )}
+
+              {/* Discreet Secret Admin Trigger in Sidebar */}
+              {onOpenAdminAuth && (
+                <div className="flex items-center justify-between pt-1 px-1 text-[10px] text-slate-500">
+                  <span>Chubuk Matrix v2.6.4</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenAdminAuth();
+                    }}
+                    className="text-slate-600 hover:text-amber-400/80 transition-colors p-1 flex items-center gap-1 cursor-pointer"
+                    title="Секретный шлюз управления"
+                  >
+                    <span>{isAdmin ? '👑 Master Mode' : '🔐 Сакральный ключ'}</span>
+                  </button>
+                </div>
               )}
             </div>
           </motion.aside>
