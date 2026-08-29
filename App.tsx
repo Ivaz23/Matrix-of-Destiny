@@ -101,6 +101,7 @@ export const App: React.FC = () => {
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [isAdminAuthModalOpen, setIsAdminAuthModalOpen] = useState(false);
   const [isUsageLimitModalOpen, setIsUsageLimitModalOpen] = useState(false);
+  const [usageLimitModalTab, setUsageLimitModalTab] = useState<'crypto' | 'wheel' | 'partner' | 'money' | 'promo'>('crypto');
   const [localCalculations, setLocalCalculations] = useState<SavedCalculation[]>([]);
   
   const savedCalculations = user ? dbCalculations : localCalculations;
@@ -141,11 +142,20 @@ export const App: React.FC = () => {
     };
     window.addEventListener('chubuk_navigate_tab', handleCustomNavigate);
 
+    const handleOpenUsageModal = (e: any) => {
+      if (e.detail?.tab) {
+        setUsageLimitModalTab(e.detail.tab);
+      }
+      setIsUsageLimitModalOpen(true);
+    };
+    window.addEventListener('chubuk_open_usage_limit_modal', handleOpenUsageModal);
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibility);
       navigator.serviceWorker?.removeEventListener('message', handleSwMessage);
       window.removeEventListener('chubuk_navigate_tab', handleCustomNavigate);
+      window.removeEventListener('chubuk_open_usage_limit_modal', handleOpenUsageModal);
     };
   }, [userInput, matrix]);
 
@@ -651,6 +661,10 @@ export const App: React.FC = () => {
                       onNavigateToMatrix={() => setActiveTab('matrix')}
                       onNavigateToTarot={() => setActiveTab('tarot')}
                       onNavigateToSound={() => setActiveTab('daily')}
+                      onOpenShopModal={(tab) => {
+                        setUsageLimitModalTab(tab || 'crypto');
+                        setIsUsageLimitModalOpen(true);
+                      }}
                     />
                   </div>
                 ) : activeTab === 'wallpapers' ? (
@@ -835,11 +849,16 @@ export const App: React.FC = () => {
           }}
         />
 
-        {/* Daily Usage Limits & VIP Promo Modal */}
+        {/* Daily Usage Limits & Monetization / Fortune Wheel Modal */}
         <UsageLimitModal
           isOpen={isUsageLimitModalOpen}
           onClose={() => setIsUsageLimitModalOpen(false)}
           onOpenAdminAuth={() => setIsAdminAuthModalOpen(true)}
+          initialTab={usageLimitModalTab}
+          onTriggerHaptic={triggerHaptic}
+          onSuccessVipUnlock={() => {
+            showToast("👑 VIP статус активирован! Лимиты сняты.");
+          }}
         />
 
         {/* Matrix of Destiny Onboarding Guide Coach Marks */}

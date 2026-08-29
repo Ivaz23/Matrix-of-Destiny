@@ -491,6 +491,23 @@ export const AppSidebarNavigation: React.FC<AppSidebarNavigationProps> = ({
 
             {/* Footer Profile & Quick Action */}
             <div className="p-4 border-t border-white/10 bg-[#080d19] shrink-0 space-y-2.5">
+              {/* Quick Wheel & Shop Button */}
+              <button
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('chubuk_open_usage_limit_modal', { detail: { tab: 'wheel' } }));
+                  onClose();
+                }}
+                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-transparent border border-amber-500/40 text-amber-200 hover:border-amber-400 hover:text-white transition-all text-xs font-serif font-bold cursor-pointer shadow-md"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🎡</span>
+                  <span>Колесо Фортуны & Пополнение Попыток</span>
+                </div>
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-300 border border-amber-500/40">
+                  10к:3 / СБП
+                </span>
+              </button>
+
               {onOpenNotifications && (
                 <button
                   onClick={() => {

@@ -213,7 +213,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 if (isAdmin) {
                   onSelectTab('admin');
                 } else {
-                  onOpenAdminAuth?.();
+                  onOpenUsageLimitModal?.();
                 }
               }}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500/20 to-purple-500/20 border border-amber-400/60 text-amber-300 hover:border-amber-300 text-xs font-serif font-bold transition-all shadow-[0_0_12px_rgba(245,158,11,0.25)] cursor-pointer"
@@ -223,23 +223,38 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <span className="text-[11px] uppercase tracking-wider">{isAdmin ? 'Master (∞)' : 'VIP (∞)'}</span>
             </button>
           ) : (
-            <button
-              onClick={() => {
-                onTriggerHaptic?.(10);
-                onOpenUsageLimitModal?.();
-              }}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                remainingAttempts > 0
-                  ? 'bg-white/5 border-amber-500/30 text-amber-200 hover:bg-amber-500/10'
-                  : 'bg-red-500/15 border-red-500/40 text-red-300 animate-pulse'
-              }`}
-              title="Количество бесплатных попыток раскладов и расчетов на сегодня. Нажмите для ввода промокода или Master ключа"
-            >
-              <Sparkles size={13} className={remainingAttempts > 0 ? "text-amber-400" : "text-red-400"} />
-              <span className="font-mono text-[11px]">
-                {remainingAttempts > 0 ? `${remainingAttempts}/${MAX_FREE_ATTEMPTS}` : '0/3 Лимит'}
-              </span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => {
+                  onTriggerHaptic?.(10);
+                  onOpenUsageLimitModal?.();
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                  remainingAttempts > 0
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-200 hover:bg-amber-500/20'
+                    : 'bg-red-500/15 border-red-500/40 text-red-300 animate-pulse'
+                }`}
+                title="Попытки расчетов и раскладов. Нажмите для пополнения (Крипта 10к:3 / Колесо / Яндекс / Карты)"
+              >
+                <Sparkles size={13} className={remainingAttempts > 0 ? "text-amber-400" : "text-red-400"} />
+                <span className="font-mono text-[11px] font-bold">
+                  {remainingAttempts > 0 ? `${remainingAttempts} поп.` : '0/3 Лимит'}
+                </span>
+                <span className="text-[10px] text-amber-400/80 font-bold bg-amber-500/20 px-1 rounded">+</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  onTriggerHaptic?.(15);
+                  onOpenUsageLimitModal?.();
+                }}
+                className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 hover:bg-purple-500/25 text-xs font-serif font-bold transition-all cursor-pointer shadow-sm"
+                title="Сакральное Колесо Фортуны — крутите и получайте бесплатные попытки!"
+              >
+                <span>🎡</span>
+                <span className="text-[10px]">Колесо</span>
+              </button>
+            </div>
           )}
 
           {/* Active User Energy Pill if calculated */}

@@ -614,6 +614,63 @@ export const AdminPanelSection: React.FC<AdminPanelSectionProps> = ({
                 </button>
               </div>
 
+              <div className="p-5 rounded-2xl bg-black/40 border border-amber-500/30 space-y-3">
+                <h4 className="font-serif font-bold text-amber-200 text-sm flex items-center gap-2">
+                  <Coins size={16} className="text-amber-400" />
+                  <span>Управление Монетизацией & Попытками</span>
+                </h4>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Тестовое пополнение попыток, сброс суточных ограничений и начисление токенов $CHUBUK.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      try {
+                        const current = parseInt(localStorage.getItem('chubuk_bonus_attempts_v1') || '0', 10);
+                        localStorage.setItem('chubuk_bonus_attempts_v1', (current + 10).toString());
+                        window.dispatchEvent(new CustomEvent('chubuk_usage_updated'));
+                        setSuccessToast("Начислено +10 бонусных попыток!");
+                      } catch {}
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    +10 Попыток
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      try {
+                        const today = new Date().toISOString().split('T')[0];
+                        localStorage.removeItem(`chubuk_usage_attempts_${today}`);
+                        window.dispatchEvent(new CustomEvent('chubuk_usage_updated'));
+                        setSuccessToast("Суточный лимит 3/3 сброшен!");
+                      } catch {}
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-200 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Сбросить суточный счетчик
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      try {
+                        const raw = localStorage.getItem('chubuk_tapper_game_state_v1');
+                        if (raw) {
+                          const state = JSON.parse(raw);
+                          state.coins = (state.coins || 0) + 100000;
+                          localStorage.setItem('chubuk_tapper_game_state_v1', JSON.stringify(state));
+                          window.dispatchEvent(new CustomEvent('chubuk_coins_updated'));
+                          setSuccessToast("+100,000 $CHUBUK начислено в тапалку!");
+                        }
+                      } catch {}
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-200 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    +100k $CHUBUK
+                  </button>
+                </div>
+              </div>
+
               <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
                 <h4 className="font-serif font-bold text-white text-sm">Экспорт Диагностики</h4>
                 <p className="text-xs text-slate-400 leading-relaxed">

@@ -86,7 +86,11 @@ const TarotSection: React.FC<TarotSectionProps> = ({ userInput, matrix, onSave, 
     // Check usage limits for free users
     const check = checkCanPerformAction();
     if (!check.allowed) {
-      onOpenUsageLimitModal?.();
+      if (onOpenUsageLimitModal) {
+        onOpenUsageLimitModal();
+      } else {
+        window.dispatchEvent(new CustomEvent('chubuk_open_usage_limit_modal', { detail: { tab: 'crypto' } }));
+      }
       return;
     }
 

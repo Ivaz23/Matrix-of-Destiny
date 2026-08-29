@@ -88,6 +88,21 @@ export const AppCategoryRibbon: React.FC<AppCategoryRibbonProps> = ({
         className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth px-2 max-w-7xl mx-auto"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
+        {/* Fortune Wheel & Shop Quick Action Chip */}
+        <button
+          onClick={() => {
+            onTriggerHaptic?.(12);
+            window.dispatchEvent(new CustomEvent('chubuk_open_usage_limit_modal', { detail: { tab: 'wheel' } }));
+          }}
+          className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-gradient-to-r from-amber-500/20 via-purple-500/25 to-emerald-500/20 text-amber-200 border border-amber-500/40 hover:border-amber-400 hover:brightness-110 shadow-sm transition-all duration-200 cursor-pointer shrink-0"
+        >
+          <span className="text-xs leading-none">🎡</span>
+          <span className="font-serif tracking-tight">Колесо & Попытки</span>
+          <span className="text-[8px] font-black px-1.2 py-0.2 rounded-full uppercase bg-amber-500/30 text-amber-300 border border-amber-500/40">
+            10к:3
+          </span>
+        </button>
+
         {visibleCategories.map((item) => {
           const isSelected = activeTab === item.id;
           return (

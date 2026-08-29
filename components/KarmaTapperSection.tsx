@@ -58,6 +58,7 @@ interface KarmaTapperSectionProps {
   onNavigateToMatrix?: () => void;
   onNavigateToTarot?: () => void;
   onNavigateToSound?: () => void;
+  onOpenShopModal?: (tab?: 'crypto' | 'wheel' | 'partner' | 'money' | 'promo') => void;
 }
 
 type SubTabId = 'tapper' | 'mine' | 'combo' | 'quests' | 'leaders' | 'airdrop';
@@ -74,7 +75,8 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
   matrix,
   onNavigateToMatrix,
   onNavigateToTarot,
-  onNavigateToSound
+  onNavigateToSound,
+  onOpenShopModal
 }) => {
   const [gameState, setGameState] = useState<TapperGameState>(() => loadGameState().state);
   const [activeSubTab, setActiveSubTab] = useState<SubTabId>('tapper');
@@ -558,6 +560,57 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
               className="h-full bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400 rounded-full transition-all duration-300"
               style={{ width: `${progressToNext}%` }}
             />
+          </div>
+        </div>
+
+        {/* Monetization & Conversion Quick Bar */}
+        <div className="mt-4 p-3 rounded-2xl bg-gradient-to-r from-amber-500/15 via-purple-500/15 to-emerald-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 text-center sm:text-left">
+            <div className="w-9 h-9 rounded-xl bg-amber-500 text-black flex items-center justify-center font-bold shrink-0">
+              🪙
+            </div>
+            <div>
+              <div className="text-xs font-serif font-bold text-amber-200">
+                Курс обмена: 10,000 $CHUBUK = 3 попытки
+              </div>
+              <div className="text-[11px] text-slate-300">
+                Конвертируйте натапанное в расклады Таро, Хорар или крутите Колесо Фортуны!
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic(15);
+                if (onOpenShopModal) {
+                  onOpenShopModal('crypto');
+                } else {
+                  window.dispatchEvent(new CustomEvent('chubuk_open_usage_limit_modal', { detail: { tab: 'crypto' } }));
+                }
+              }}
+              className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-serif font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+            >
+              <Coins size={13} />
+              <span>Обменять</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic(15);
+                if (onOpenShopModal) {
+                  onOpenShopModal('wheel');
+                } else {
+                  window.dispatchEvent(new CustomEvent('chubuk_open_usage_limit_modal', { detail: { tab: 'wheel' } }));
+                }
+              }}
+              className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-200 font-serif font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>🎡</span>
+              <span>Колесо</span>
+            </button>
           </div>
         </div>
       </div>
