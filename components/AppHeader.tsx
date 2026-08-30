@@ -18,6 +18,7 @@ import {
 import { AppNavTabId } from './AppSidebarNavigation';
 import { UserInput, MatrixNumbers } from '../types';
 import { isUserAdmin, getRemainingAttempts, MAX_FREE_ATTEMPTS, isVipUnlocked } from '../services/usageLimitService';
+import { getUserCustomAvatar, UserCustomAvatar } from '../services/avatarService';
 
 interface AppHeaderProps {
   activeTab: AppNavTabId;
@@ -57,6 +58,7 @@ const TAB_TITLES: Record<AppNavTabId, { title: string; subtitle: string; icon: s
   cities: { title: 'Города Силы', subtitle: 'Астрокартография и места силы', icon: '🏛️' },
   astrology: { title: 'Натальная Астрология', subtitle: 'Планеты, дома и аспекты', icon: '♈' },
   compatibility: { title: 'Совместимость', subtitle: 'Синастрия двух судеб', icon: '❤️' },
+  market: { title: 'Сакральный Маркет', subtitle: 'Талисманы, браслеты по арканам, колоды Таро и книги', icon: '🛍️' },
   tarot: { title: 'Таро Расклады', subtitle: 'Кельтский крест и триптих', icon: '🃏' },
   horary: { title: 'Хорарная Астрология', subtitle: 'Ответ звезд на вопрос момента', icon: '🕰️' },
   faq: { title: 'База Знаний & FAQ', subtitle: 'Часто задаваемые вопросы о матрице и 22 арканах', icon: '❓' },
@@ -85,7 +87,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const [isAdmin, setIsAdmin] = useState(() => isUserAdmin(user));
   const [isVip, setIsVip] = useState(() => isVipUnlocked());
   const [remainingAttempts, setRemainingAttempts] = useState(() => getRemainingAttempts(user));
+  const [customAvatar, setCustomAvatar] = useState<UserCustomAvatar | null>(() => getUserCustomAvatar());
   const currentTabInfo = TAB_TITLES[activeTab] || TAB_TITLES.matrix;
+
+  useEffect(() => {
+    const handleAvatarUpdate = (e: any) => {
+      setCustomAvatar(e.detail || getUserCustomAvatar());
+    };
+    window.addEventListener('chubuk_avatar_updated', handleAvatarUpdate);
+    return () => window.removeEventListener('chubuk_avatar_updated', handleAvatarUpdate);
+  }, []);
 
   const logoClickCountRef = useRef(0);
   const logoClickTimerRef = useRef<any>(null);
@@ -294,7 +305,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           {/* User Auth */}
           {user ? (
             <div className="flex items-center gap-1 pl-1 pr-1 py-0.5 rounded-xl bg-black/40 border border-white/10">
-              {user.photoURL ? (
+              {customAvatar?.imageUrl ? (
+                <img src={customAvatar.imageUrl} alt="Avatar" className="w-5 h-5 rounded-full border border-amber-400 object-cover" />
+              ) : user.photoURL ? (
                 <img src={user.photoURL} alt="" className="w-5 h-5 rounded-full border border-amber-500/30" />
               ) : (
                 <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 text-[9px]">
@@ -309,6 +322,17 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 <LogOut size={11} />
               </button>
             </div>
+          ) : customAvatar?.imageUrl ? (
+            <button
+              onClick={() => {
+                onTriggerHaptic?.(10);
+                onSelectTab('profile');
+              }}
+              className="flex items-center gap-1 p-0.5 rounded-xl border border-amber-400/60 bg-amber-500/10 hover:bg-amber-500/20 transition-all cursor-pointer"
+              title="Мой Магический Аватар"
+            >
+              <img src={customAvatar.imageUrl} alt="Avatar" className="w-6 h-6 rounded-lg border border-amber-400 object-cover shadow-sm" />
+            </button>
           ) : (
             <button 
               onClick={onSignIn}

@@ -26,10 +26,24 @@ import {
   Eye,
   Settings,
   Terminal,
-  Server
+  Server,
+  DollarSign,
+  TrendingUp,
+  ExternalLink,
+  ShoppingBag,
+  HelpCircle,
+  Tag,
+  Zap
 } from 'lucide-react';
 import { UserInput, SavedCalculation } from '../types';
 import { useGlobalAudio } from '../src/hooks/useGlobalAudio';
+import { 
+  getMonetizationSettings, 
+  saveMonetizationSettings, 
+  getAdTelemetry, 
+  MonetizationSettings, 
+  AdTelemetry 
+} from '../services/monetizationService';
 
 interface AdminPanelSectionProps {
   user: any | null;
@@ -48,7 +62,11 @@ export const AdminPanelSection: React.FC<AdminPanelSectionProps> = ({
   const [authError, setAuthError] = useState<string | null>(null);
 
   // Active Admin Sub-tab
-  const [adminTab, setAdminTab] = useState<'overview' | 'ai' | 'broadcast' | 'promo' | 'system'>('overview');
+  const [adminTab, setAdminTab] = useState<'overview' | 'monetization' | 'ai' | 'broadcast' | 'promo' | 'system'>('overview');
+
+  // Monetization & Ads State
+  const [monetization, setMonetization] = useState<MonetizationSettings>(getMonetizationSettings);
+  const [adTelemetry, setAdTelemetry] = useState<AdTelemetry>(getAdTelemetry);
 
   // AI Tuning State
   const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash');
@@ -258,6 +276,18 @@ export const AdminPanelSection: React.FC<AdminPanelSectionProps> = ({
           </button>
 
           <button
+            onClick={() => setAdminTab('monetization')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all cursor-pointer ${
+              adminTab === 'monetization'
+                ? 'bg-amber-500 text-black font-black shadow-lg shadow-amber-500/20'
+                : 'bg-white/5 hover:bg-white/10 text-amber-300 border border-amber-500/30'
+            }`}
+          >
+            <DollarSign size={15} />
+            <span>💰 Монетизация & РСЯ</span>
+          </button>
+
+          <button
             onClick={() => setAdminTab('ai')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all cursor-pointer ${
               adminTab === 'ai'
@@ -390,6 +420,263 @@ export const AdminPanelSection: React.FC<AdminPanelSectionProps> = ({
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-TAB: MONETIZATION & ADS (RSYA, AFFILIATES, PRICING) */}
+      {adminTab === 'monetization' && (
+        <div className="space-y-6">
+          {/* Revenue Telemetry */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-5 rounded-3xl bg-[#0a1020] border border-amber-500/30 space-y-1">
+              <span className="text-xs font-mono text-slate-400 uppercase">Показы Баннеров</span>
+              <div className="text-3xl font-serif font-black text-amber-300 flex items-center gap-2">
+                <Eye size={24} className="text-amber-400" />
+                <span>{adTelemetry.impressions.toLocaleString('ru-RU')}</span>
+              </div>
+              <span className="text-[11px] text-emerald-400 font-mono">+12.4% за 24ч</span>
+            </div>
+
+            <div className="p-5 rounded-3xl bg-[#0a1020] border border-amber-500/30 space-y-1">
+              <span className="text-xs font-mono text-slate-400 uppercase">Клики по Рекламе</span>
+              <div className="text-3xl font-serif font-black text-sky-300 flex items-center gap-2">
+                <TrendingUp size={24} className="text-sky-400" />
+                <span>{adTelemetry.clicks} кликов</span>
+              </div>
+              <span className="text-[11px] text-sky-400 font-mono">CTR: ~{((adTelemetry.clicks / Math.max(1, adTelemetry.impressions)) * 100).toFixed(1)}%</span>
+            </div>
+
+            <div className="p-5 rounded-3xl bg-[#0a1020] border border-amber-500/30 space-y-1">
+              <span className="text-xs font-mono text-slate-400 uppercase">Rewarded Видео</span>
+              <div className="text-3xl font-serif font-black text-purple-300 flex items-center gap-2">
+                <Zap size={24} className="text-purple-400" />
+                <span>{adTelemetry.rewardedWatches} раз</span>
+              </div>
+              <span className="text-[11px] text-purple-400 font-mono">Высокий eCPM</span>
+            </div>
+
+            <div className="p-5 rounded-3xl bg-[#0a1020] border border-amber-500/30 space-y-1">
+              <span className="text-xs font-mono text-slate-400 uppercase">Оценка Дохода</span>
+              <div className="text-3xl font-serif font-black text-emerald-300 flex items-center gap-2">
+                <DollarSign size={24} className="text-emerald-400" />
+                <span>~{Math.round(adTelemetry.revenueEstimatedRub).toLocaleString('ru-RU')} ₽</span>
+              </div>
+              <span className="text-[11px] text-emerald-400 font-mono">Прямые выплаты на карту/счет</span>
+            </div>
+          </div>
+
+          {/* Quick Guide Card */}
+          <div className="p-6 rounded-3xl bg-gradient-to-r from-[#1c122c] to-[#0d142b] border border-amber-500/40 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-serif font-bold text-amber-300 flex items-center gap-2">
+                <HelpCircle size={18} className="text-amber-400" />
+                <span>Как подключить Яндекс РСЯ и получать выплаты?</span>
+              </h3>
+              <a
+                href="https://partner.yandex.ru"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-serif font-bold transition-all flex items-center gap-1 shadow-lg shadow-amber-500/20"
+              >
+                <span>Кабинет РСЯ</span>
+                <ExternalLink size={13} />
+              </a>
+            </div>
+            <ol className="text-xs text-slate-300 space-y-1.5 list-decimal list-inside font-light">
+              <li>Зарегистрируйтесь в <strong className="text-white">partner.yandex.ru</strong> (как физлицо, самозанятый или ИП).</li>
+              <li>Добавьте ваш домен / URL приложения во вкладку <em>«Площадки»</em>.</li>
+              <li>Создайте блоки: <strong>Адаптивный баннер</strong> (для шапки и ленты) и <strong>Видео с вознаграждением</strong> (Rewarded).</li>
+              <li>Скопируйте их идентификаторы (формата <code className="text-amber-300 font-mono bg-black/50 px-1 py-0.5 rounded">R-A-XXXXXX-1</code>) и вставьте в поля ниже.</li>
+              <li>Нажмите <strong>«Сохранить настройки»</strong> — баннеры сразу начнут показ и приносить вам деньги!</li>
+            </ol>
+          </div>
+
+          {/* Settings Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Box 1: Yandex RSYA Configuration */}
+            <div className="p-6 rounded-3xl bg-[#060a14] border border-white/10 space-y-5">
+              <div className="flex items-center justify-between">
+                <h4 className="font-serif font-bold text-white text-base flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                  <span>Рекламная Сеть Яндекса (РСЯ)</span>
+                </h4>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={monetization.yandexAdsEnabled && monetization.adsEnabled}
+                    onChange={(e) => setMonetization(prev => ({
+                      ...prev,
+                      adsEnabled: e.target.checked,
+                      yandexAdsEnabled: e.target.checked
+                    }))}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                </label>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">
+                    ID Блока в Шапке (Header Banner):
+                  </label>
+                  <input
+                    type="text"
+                    value={monetization.yandexHeaderBlockId}
+                    onChange={(e) => setMonetization(prev => ({ ...prev, yandexHeaderBlockId: e.target.value.trim() }))}
+                    placeholder="Например: R-A-1234567-1"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white font-mono text-xs placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">Отображается в верхней части экрана над расчетом.</p>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">
+                    ID Блока в Результатах (In-feed Banner):
+                  </label>
+                  <input
+                    type="text"
+                    value={monetization.yandexInfeedBlockId}
+                    onChange={(e) => setMonetization(prev => ({ ...prev, yandexInfeedBlockId: e.target.value.trim() }))}
+                    placeholder="Например: R-A-1234567-2"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white font-mono text-xs placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">Отображается между ключевыми блоками матрицы.</p>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">
+                    ID Блока Rewarded Video (За вознаграждение):
+                  </label>
+                  <input
+                    type="text"
+                    value={monetization.yandexRewardedBlockId}
+                    onChange={(e) => setMonetization(prev => ({ ...prev, yandexRewardedBlockId: e.target.value.trim() }))}
+                    placeholder="Например: R-A-1234567-3"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white font-mono text-xs placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">Используется при разблокировке глубокого анализа за просмотр видео.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Box 2: CPA / Affiliate Marketing Links */}
+            <div className="p-6 rounded-3xl bg-[#060a14] border border-white/10 space-y-5">
+              <div className="flex items-center justify-between">
+                <h4 className="font-serif font-bold text-white text-base flex items-center gap-2">
+                  <ShoppingBag size={18} className="text-amber-400" />
+                  <span>Партнерские ссылки (CPA & Маркет)</span>
+                </h4>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">
+                    Ссылка на камни и браслеты (Литотерапия / WB / Ozon):
+                  </label>
+                  <input
+                    type="text"
+                    value={monetization.affiliateLithotherapyUrl}
+                    onChange={(e) => setMonetization(prev => ({ ...prev, affiliateLithotherapyUrl: e.target.value }))}
+                    placeholder="https://market.yandex.ru/search?text=..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white font-mono text-xs placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">
+                    Ссылка на колоды Таро:
+                  </label>
+                  <input
+                    type="text"
+                    value={monetization.affiliateTarotDecksUrl}
+                    onChange={(e) => setMonetization(prev => ({ ...prev, affiliateTarotDecksUrl: e.target.value }))}
+                    placeholder="https://market.yandex.ru/search?text=..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white font-mono text-xs placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">
+                    Ссылка на обучающие курсы / Telegram:
+                  </label>
+                  <input
+                    type="text"
+                    value={monetization.affiliateCourseUrl}
+                    onChange={(e) => setMonetization(prev => ({ ...prev, affiliateCourseUrl: e.target.value }))}
+                    placeholder="https://t.me/your_channel"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white font-mono text-xs placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing & Tariffs Box */}
+          <div className="p-6 rounded-3xl bg-[#060a14] border border-white/10 space-y-4">
+            <h4 className="font-serif font-bold text-white text-base flex items-center gap-2">
+              <Tag size={18} className="text-amber-400" />
+              <span>Стоимость платных услуг (Paywall & PDF)</span>
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-bold text-slate-300 block">PDF-Отчет (₽):</label>
+                <input
+                  type="number"
+                  value={monetization.pdfReportPriceRub}
+                  onChange={(e) => setMonetization(prev => ({ ...prev, pdfReportPriceRub: Number(e.target.value) }))}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white font-mono font-bold focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-300 block">Чат с Оракулом PRO (₽/мес):</label>
+                <input
+                  type="number"
+                  value={monetization.unlimitedChatPriceRub}
+                  onChange={(e) => setMonetization(prev => ({ ...prev, unlimitedChatPriceRub: Number(e.target.value) }))}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white font-mono font-bold focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-300 block">Пакет Сакральных Обоев (₽):</label>
+                <input
+                  type="number"
+                  value={monetization.wallpapersPackPriceRub}
+                  onChange={(e) => setMonetization(prev => ({ ...prev, wallpapersPackPriceRub: Number(e.target.value) }))}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white font-mono font-bold focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-300 block">VIP All-Access (₽):</label>
+                <input
+                  type="number"
+                  value={monetization.vipAllAccessPriceRub}
+                  onChange={(e) => setMonetization(prev => ({ ...prev, vipAllAccessPriceRub: Number(e.target.value) }))}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-white font-mono font-bold focus:outline-none focus:border-amber-400"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <div className="flex justify-end pt-2">
+            <button
+              onClick={() => {
+                saveMonetizationSettings(monetization);
+                setSuccessToast('Настройки монетизации и РСЯ успешно сохранены!');
+                if (onTriggerHaptic) onTriggerHaptic([30, 50, 30]);
+                setTimeout(() => setSuccessToast(null), 3500);
+              }}
+              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 text-black font-serif font-black text-xs uppercase tracking-widest hover:brightness-110 active:scale-98 transition-all shadow-xl shadow-amber-500/20 flex items-center gap-2 cursor-pointer"
+            >
+              <Save size={16} />
+              <span>Сохранить настройки монетизации</span>
+            </button>
           </div>
         </div>
       )}

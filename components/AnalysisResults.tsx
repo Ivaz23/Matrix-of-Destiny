@@ -8,6 +8,7 @@ import { useGlobalAudio } from '../src/hooks/useGlobalAudio';
 import MatrixTable from './MatrixTable';
 import PythagoreanSquareTable from './PythagoreanSquareTable';
 import DailyForecastSection from './DailyForecastSection';
+import { YandexAdBanner } from './YandexAdBanner';
 
 interface AnalysisResultsProps {
   analysis: AnalysisResult;
@@ -334,6 +335,9 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, userInput, 
           <span>{isGeneratingPdf ? 'Формирование отчета...' : 'Скачать отчет (PDF)'}</span>
         </button>
       </div>
+
+      {/* In-feed Yandex / Sponsor Banner */}
+      <YandexAdBanner placement="infeed" />
 
       {/* NEW: Ask specific question about Matrix */}
       <div className="card-3d rounded-3xl p-8 border-amber-500/30 bg-black/40 shadow-inner no-print">

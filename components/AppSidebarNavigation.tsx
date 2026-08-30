@@ -32,7 +32,8 @@ import {
   Hourglass,
   ShieldAlert,
   Database,
-  HardDrive
+  HardDrive,
+  ShoppingBag
 } from 'lucide-react';
 
 import { isUserAdmin } from '../services/usageLimitService';
@@ -60,6 +61,7 @@ export type AppNavTabId =
   | 'compatibility' 
   | 'tarot' 
   | 'horary' 
+  | 'market'
   | 'faq'
   | 'profile'
   | 'admin';
@@ -205,6 +207,14 @@ const NAV_CATEGORIES: NavCategory[] = [
   {
     title: '✨ Талисманы, Род и Подсознание',
     items: [
+      {
+        id: 'market',
+        label: 'Сакральный Маркет & Камни',
+        description: 'Персональные минералы, браслеты изобилия, колоды Таро и книги',
+        icon: ShoppingBag,
+        badge: 'MARKET',
+        color: '#f59e0b'
+      },
       {
         id: 'litho',
         label: 'Литотерапия & Камни',

@@ -35,6 +35,7 @@ const CATEGORIES: CategoryItem[] = [
   { id: 'tarot', label: 'Таро Расклады', shortLabel: 'Таро', icon: '🃏' },
   { id: 'astrology', label: 'Натальная Карта', shortLabel: 'Астрология', icon: '♈' },
   { id: 'compatibility', label: 'Совместимость', shortLabel: 'Синастрия', icon: '❤️' },
+  { id: 'market', label: 'Сакральный Маркет', shortLabel: 'Маркет 🛍️', icon: '🛍️', badge: 'NEW', highlight: true },
   { id: 'litho', label: 'Литотерапия', shortLabel: 'Камни', icon: '💎' },
   { id: 'dreams', label: 'Оракул Снов', shortLabel: 'Сонник', icon: '💤' },
   { id: 'cities', label: 'Города Силы', shortLabel: 'Места Силы', icon: '🏛️' },

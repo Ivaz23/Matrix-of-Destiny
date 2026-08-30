@@ -69,6 +69,9 @@ const CachingSection = lazy(() => import('./components/CachingSection'));
 const LifespanSection = lazy(() => import('./components/LifespanSection'));
 const FaqSection = lazy(() => import('./components/FaqSection'));
 const AdminPanelSection = lazy(() => import('./components/AdminPanelSection'));
+const AffiliateMarketSection = lazy(() => import('./components/AffiliateMarketSection').then(m => ({ default: m.AffiliateMarketSection })));
+
+import { YandexAdBanner } from './components/YandexAdBanner';
 
 import { calculateMatrix } from './services/numerologyUtils';
 import { getAstrologyData } from './services/astrologyUtils';
@@ -472,6 +475,19 @@ export const App: React.FC = () => {
 
         {/* Main Application Screen Container */}
         <main className="relative z-10 flex-1 max-w-6xl w-full mx-auto px-2.5 sm:px-4 py-3 sm:py-5 pb-24 lg:pb-16">
+          {/* Top Yandex Advertising / Sponsor Banner */}
+          <YandexAdBanner 
+            placement="header" 
+            onOpenAdmin={() => {
+              triggerHaptic(10);
+              setActiveTab('admin');
+            }} 
+            onOpenPaywall={() => {
+              triggerHaptic(10);
+              setIsUsageLimitModalOpen(true);
+            }} 
+          />
+
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -714,6 +730,15 @@ export const App: React.FC = () => {
                       userInput={userInput} 
                       onSave={(res) => saveReading({ horary: res })} 
                       onOpenUsageLimitModal={() => setIsUsageLimitModalOpen(true)}
+                    />
+                  </div>
+                ) : activeTab === 'market' ? (
+                  <div className="w-full">
+                    <AffiliateMarketSection 
+                      matrix={matrix || undefined} 
+                      userInput={userInput || undefined} 
+                      onTriggerHaptic={triggerHaptic}
+                      onOpenOrderModal={() => setIsUsageLimitModalOpen(true)}
                     />
                   </div>
                 ) : activeTab === 'faq' ? (

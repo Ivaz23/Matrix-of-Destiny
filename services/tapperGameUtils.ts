@@ -64,6 +64,11 @@ export interface TapperGameState {
     totalTaps: number;
     todayTaps: number;
   };
+  // Permanent Click & Energy Upgrades
+  multitapLevel: number;
+  energyLimitLevel: number;
+  rechargeSpeedLevel: number;
+  autoBotLevel: number;
 }
 
 export const RANKS: RankLevel[] = [
@@ -593,16 +598,61 @@ export const DEFAULT_GAME_STATE: TapperGameState = {
   tapStats: {
     totalTaps: 0,
     todayTaps: 0
-  }
+  },
+  multitapLevel: 1,
+  energyLimitLevel: 1,
+  rechargeSpeedLevel: 1,
+  autoBotLevel: 0
 };
 
 const STORAGE_KEY = 'chubuk_tapper_game_state_v1';
+
+// Upgrade Cost and Effect Helpers
+export const getMultitapCost = (level: number): number => {
+  return Math.floor(250 * Math.pow(2, level - 1));
+};
+
+export const getEnergyLimitCost = (level: number): number => {
+  return Math.floor(500 * Math.pow(2.2, level - 1));
+};
+
+export const getRechargeSpeedCost = (level: number): number => {
+  return Math.floor(1000 * Math.pow(2.5, level - 1));
+};
+
+export const getAutoBotCost = (level: number): number => {
+  return level === 0 ? 25000 : Math.floor(50000 * Math.pow(2, level));
+};
+
+export const calculateTapPower = (multitapLevel: number): number => {
+  return Math.max(1, multitapLevel);
+};
+
+export const calculateMaxEnergy = (energyLimitLevel: number): number => {
+  return 1000 + Math.max(0, energyLimitLevel - 1) * 500;
+};
+
+export const calculateEnergyRegenPerSecond = (rechargeSpeedLevel: number): number => {
+  // Base is ~0.1667 energy/sec (+100 per 10 min), each level increases regen speed by +30%
+  const multiplier = 1 + Math.max(0, rechargeSpeedLevel - 1) * 0.3;
+  return ENERGY_REGEN_PER_SECOND * multiplier;
+};
 
 // Load Game State with Offline Mining Calculation
 export const loadGameState = (): { state: TapperGameState; offlineEarnings: number; offlineSeconds: number } => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     let state: TapperGameState = raw ? { ...DEFAULT_GAME_STATE, ...JSON.parse(raw) } : { ...DEFAULT_GAME_STATE };
+
+    // Ensure upgrade fields exist for existing state
+    if (state.multitapLevel === undefined) state.multitapLevel = 1;
+    if (state.energyLimitLevel === undefined) state.energyLimitLevel = 1;
+    if (state.rechargeSpeedLevel === undefined) state.rechargeSpeedLevel = 1;
+    if (state.autoBotLevel === undefined) state.autoBotLevel = 0;
+
+    // Recalculate derived attributes
+    state.tapPower = calculateTapPower(state.multitapLevel);
+    state.maxEnergy = calculateMaxEnergy(state.energyLimitLevel);
 
     const now = Date.now();
     const today = getTodayDateString();
@@ -619,21 +669,26 @@ export const loadGameState = (): { state: TapperGameState; offlineEarnings: numb
     let offlineEarnings = 0;
     let offlineSeconds = 0;
 
-    if (state.lastEarnTimestamp && state.profitPerHour > 0) {
+    // Auto-bot also contributes to offline or passive bonus
+    const autoBotBonusPerHour = state.autoBotLevel > 0 ? state.autoBotLevel * 1200 : 0;
+    const totalProfitPerHour = state.profitPerHour + autoBotBonusPerHour;
+
+    if (state.lastEarnTimestamp && totalProfitPerHour > 0) {
       const elapsedSeconds = Math.max(0, Math.floor((now - state.lastEarnTimestamp) / 1000));
       const cappedSeconds = Math.min(elapsedSeconds, 3 * 3600); // 3h max offline profit
       offlineSeconds = cappedSeconds;
 
       if (cappedSeconds > 5) {
-        offlineEarnings = Math.floor((state.profitPerHour / 3600) * cappedSeconds);
+        offlineEarnings = Math.floor((totalProfitPerHour / 3600) * cappedSeconds);
         state.coins += offlineEarnings;
         state.totalEarned += offlineEarnings;
       }
     }
 
-    // Energy regeneration: exactly 100 energy per 10 minutes (1 energy every 6 seconds)
+    // Energy regeneration with speed bonus
+    const regenRate = calculateEnergyRegenPerSecond(state.rechargeSpeedLevel);
     const elapsedSinceLast = Math.max(0, Math.floor((now - (state.lastEarnTimestamp || now)) / 1000));
-    const regeneratedEnergy = elapsedSinceLast * ENERGY_REGEN_PER_SECOND;
+    const regeneratedEnergy = elapsedSinceLast * regenRate;
     state.energy = Math.min(state.maxEnergy, state.energy + regeneratedEnergy);
 
     // Recalculate level

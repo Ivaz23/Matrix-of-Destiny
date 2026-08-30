@@ -122,6 +122,85 @@ async function startServer() {
     }
   });
 
+  // Dedicated endpoint for AI Image Generation (Magic Avatars, Sacred Wallpapers, Talismans)
+  app.post("/api/gemini/generate-image", async (req, res) => {
+    try {
+      const { prompt, aspectRatio = "1:1", imageSize = "1K" } = req.body;
+      if (!prompt || typeof prompt !== 'string') {
+        return res.status(400).json({ error: "Prompt is required and must be a string" });
+      }
+
+      const ai = getAI();
+      let response: any = null;
+      let usedModel = 'gemini-3.1-flash-image';
+
+      // Try generating image with primary model
+      try {
+        response = await ai.models.generateContent({
+          model: 'gemini-3.1-flash-image',
+          contents: {
+            parts: [{ text: prompt }]
+          },
+          config: {
+            imageConfig: {
+              aspectRatio: aspectRatio as any,
+              imageSize: imageSize as any
+            }
+          }
+        });
+      } catch (err1: any) {
+        console.warn("Primary image model failed, trying fallback gemini-3.1-flash-lite-image:", err1?.message || err1);
+        usedModel = 'gemini-3.1-flash-lite-image';
+        try {
+          response = await ai.models.generateContent({
+            model: 'gemini-3.1-flash-lite-image',
+            contents: {
+              parts: [{ text: prompt }]
+            }
+          });
+        } catch (err2: any) {
+          throw err2;
+        }
+      }
+
+      let imageUrl: string | null = null;
+      let description = "";
+
+      if (response?.candidates?.[0]?.content?.parts) {
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData) {
+            const mime = part.inlineData.mimeType || 'image/png';
+            imageUrl = `data:${mime};base64,${part.inlineData.data}`;
+          } else if (part.text) {
+            description += part.text + " ";
+          }
+        }
+      }
+
+      if (!imageUrl) {
+        return res.status(422).json({
+          error: "Image generation model did not return image data",
+          text: description.trim() || response?.text || "",
+          model: usedModel
+        });
+      }
+
+      res.json({
+        imageUrl,
+        description: description.trim(),
+        model: usedModel,
+        timestamp: Date.now()
+      });
+    } catch (error: any) {
+      console.error("Server Image Generation Error:", error?.message || error);
+      const statusCode = error?.status === 429 || error?.message?.includes('429') ? 429 : 500;
+      res.status(statusCode).json({
+        error: error?.message || "Failed to generate image",
+        status: statusCode
+      });
+    }
+  });
+
   // Vite middleware in development vs static serving in production
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");

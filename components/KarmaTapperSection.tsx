@@ -47,7 +47,14 @@ import {
   UpgradeCard,
   ENERGY_REGEN_PER_SECOND,
   ENERGY_REGEN_INTERVAL_MINUTES,
-  ENERGY_REGEN_AMOUNT_PER_INTERVAL
+  ENERGY_REGEN_AMOUNT_PER_INTERVAL,
+  getMultitapCost,
+  getEnergyLimitCost,
+  getRechargeSpeedCost,
+  getAutoBotCost,
+  calculateTapPower,
+  calculateMaxEnergy,
+  calculateEnergyRegenPerSecond
 } from '../services/tapperGameUtils';
 import { UserInput, MatrixNumbers } from '../types';
 import { KarmicLeaderboard } from './KarmicLeaderboard';
@@ -80,7 +87,7 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
 }) => {
   const [gameState, setGameState] = useState<TapperGameState>(() => loadGameState().state);
   const [activeSubTab, setActiveSubTab] = useState<SubTabId>('tapper');
-  const [selectedCardCategory, setSelectedCardCategory] = useState<'practices' | 'artifacts' | 'infrastructure' | 'special'>('practices');
+  const [selectedCardCategory, setSelectedCardCategory] = useState<'practices' | 'artifacts' | 'infrastructure' | 'special' | 'boosts'>('practices');
   
   // Floating numbers on tap
   const [floatingNumbers, setFloatingNumbers] = useState<FloatingNumber[]>([]);
@@ -125,12 +132,14 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
     const timer = setInterval(() => {
       setGameState((prev) => {
         const now = Date.now();
-        const profitPerSec = prev.profitPerHour / 3600;
+        const autoBotBonus = (prev.autoBotLevel || 0) > 0 ? ((prev.autoBotLevel || 0) * 1200) / 3600 : 0;
+        const profitPerSec = (prev.profitPerHour / 3600) + autoBotBonus;
         const newCoins = prev.coins + profitPerSec;
         const newTotalEarned = prev.totalEarned + profitPerSec;
 
-        // Regenerate energy at calibrated rate: exactly 100 energy per 10 minutes (1 energy per 6s)
-        const newEnergy = Math.min(prev.maxEnergy, prev.energy + ENERGY_REGEN_PER_SECOND);
+        // Regenerate energy with upgraded speed
+        const regenRate = calculateEnergyRegenPerSecond(prev.rechargeSpeedLevel || 1);
+        const newEnergy = Math.min(prev.maxEnergy, prev.energy + regenRate);
         const currentRank = getRankLevel(newTotalEarned);
 
         const updated: TapperGameState = {
@@ -394,6 +403,107 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
       return nextState;
     });
     setIsBoostModalOpen(false);
+  };
+
+  // Upgrade Multitap (Click Power)
+  const handleUpgradeMultitap = () => {
+    const currentLvl = gameState.multitapLevel || 1;
+    const cost = getMultitapCost(currentLvl);
+    if (gameState.coins < cost) {
+      triggerHaptic([20, 50, 20]);
+      return;
+    }
+    if (soundEnabled) soundFx.playCoin();
+    triggerHaptic(20);
+    const nextLvl = currentLvl + 1;
+    const nextPower = calculateTapPower(nextLvl);
+
+    setGameState((prev) => {
+      const nextState: TapperGameState = {
+        ...prev,
+        coins: prev.coins - cost,
+        multitapLevel: nextLvl,
+        tapPower: nextPower
+      };
+      saveGameState(nextState);
+      return nextState;
+    });
+    showReward(`Мультитап прокачан до уровня ${nextLvl}! Сила клика: +${nextPower}`, 0);
+  };
+
+  // Upgrade Energy Limit
+  const handleUpgradeEnergyLimit = () => {
+    const currentLvl = gameState.energyLimitLevel || 1;
+    const cost = getEnergyLimitCost(currentLvl);
+    if (gameState.coins < cost) {
+      triggerHaptic([20, 50, 20]);
+      return;
+    }
+    if (soundEnabled) soundFx.playCoin();
+    triggerHaptic(20);
+    const nextLvl = currentLvl + 1;
+    const nextMaxEnergy = calculateMaxEnergy(nextLvl);
+
+    setGameState((prev) => {
+      const nextState: TapperGameState = {
+        ...prev,
+        coins: prev.coins - cost,
+        energyLimitLevel: nextLvl,
+        maxEnergy: nextMaxEnergy,
+        energy: Math.min(nextMaxEnergy, prev.energy + 500)
+      };
+      saveGameState(nextState);
+      return nextState;
+    });
+    showReward(`Предел Праны увеличен до ${nextMaxEnergy}!`, 0);
+  };
+
+  // Upgrade Recharge Speed
+  const handleUpgradeRechargeSpeed = () => {
+    const currentLvl = gameState.rechargeSpeedLevel || 1;
+    const cost = getRechargeSpeedCost(currentLvl);
+    if (gameState.coins < cost) {
+      triggerHaptic([20, 50, 20]);
+      return;
+    }
+    if (soundEnabled) soundFx.playCoin();
+    triggerHaptic(20);
+    const nextLvl = currentLvl + 1;
+
+    setGameState((prev) => {
+      const nextState: TapperGameState = {
+        ...prev,
+        coins: prev.coins - cost,
+        rechargeSpeedLevel: nextLvl
+      };
+      saveGameState(nextState);
+      return nextState;
+    });
+    showReward(`Скорость регенерации праны ускорена (+${nextLvl * 30}%)!`, 0);
+  };
+
+  // Upgrade Auto-Bot
+  const handleUpgradeAutoBot = () => {
+    const currentLvl = gameState.autoBotLevel || 0;
+    const cost = getAutoBotCost(currentLvl);
+    if (gameState.coins < cost) {
+      triggerHaptic([20, 50, 20]);
+      return;
+    }
+    if (soundEnabled) soundFx.playCoin();
+    triggerHaptic(25);
+    const nextLvl = currentLvl + 1;
+
+    setGameState((prev) => {
+      const nextState: TapperGameState = {
+        ...prev,
+        coins: prev.coins - cost,
+        autoBotLevel: nextLvl
+      };
+      saveGameState(nextState);
+      return nextState;
+    });
+    showReward(`Сакральный Авто-Бот прокачан (ур. ${nextLvl})! +${nextLvl * 1200}/час`, 0);
   };
 
   // Morse Code Tap Handler
@@ -810,9 +920,9 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
                       <Clock size={11} className="text-amber-400/80" />
                       <span>
                         До полного заряда: ~
-                        {Math.ceil((gameState.maxEnergy - gameState.energy) / ENERGY_REGEN_PER_SECOND / 60) >= 60
-                          ? `${Math.floor(Math.ceil((gameState.maxEnergy - gameState.energy) / ENERGY_REGEN_PER_SECOND / 60) / 60)} ч ${Math.ceil((gameState.maxEnergy - gameState.energy) / ENERGY_REGEN_PER_SECOND / 60) % 60} мин`
-                          : `${Math.ceil((gameState.maxEnergy - gameState.energy) / ENERGY_REGEN_PER_SECOND / 60)} мин`}
+                        {Math.ceil((gameState.maxEnergy - gameState.energy) / calculateEnergyRegenPerSecond(gameState.rechargeSpeedLevel || 1) / 60) >= 60
+                          ? `${Math.floor(Math.ceil((gameState.maxEnergy - gameState.energy) / calculateEnergyRegenPerSecond(gameState.rechargeSpeedLevel || 1) / 60) / 60)} ч ${Math.ceil((gameState.maxEnergy - gameState.energy) / calculateEnergyRegenPerSecond(gameState.rechargeSpeedLevel || 1) / 60) % 60} мин`
+                          : `${Math.ceil((gameState.maxEnergy - gameState.energy) / calculateEnergyRegenPerSecond(gameState.rechargeSpeedLevel || 1) / 60)} мин`}
                       </span>
                     </span>
                   ) : (
@@ -832,6 +942,39 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
                     </button>
                   )}
                 </div>
+              </div>
+
+              {/* Quick Click Power & Upgrades Bar */}
+              <div className="w-full max-w-sm mt-3 p-3 rounded-2xl bg-black/40 border border-amber-500/20 flex items-center justify-between gap-2 text-xs relative z-10 shadow-lg">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base">👆</span>
+                    <div>
+                      <div className="text-[10px] text-slate-400">Сила тапа</div>
+                      <div className="font-serif font-bold text-amber-300">+{gameState.tapPower} / клик</div>
+                    </div>
+                  </div>
+                  <div className="h-6 w-px bg-white/10" />
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base">🏺</span>
+                    <div>
+                      <div className="text-[10px] text-slate-400">Лимит праны</div>
+                      <div className="font-serif font-bold text-cyan-300">{gameState.maxEnergy}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic(10);
+                    setIsBoostModalOpen(true);
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-serif font-bold text-xs flex items-center gap-1 shadow-md shadow-amber-500/20 cursor-pointer"
+                >
+                  <Zap size={13} className="fill-black" />
+                  <span>Прокачать</span>
+                </button>
               </div>
 
             </div>
@@ -913,6 +1056,7 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
             {/* Category Filter Chips */}
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
               {[
+                { id: 'boosts', label: '⚡ Клик & Энергия', desc: 'Мультитап и прана' },
                 { id: 'practices', label: '🧘 Практики', desc: 'Медитации & Чакры' },
                 { id: 'artifacts', label: '💎 Талисманы', desc: 'Камни & Чётки' },
                 { id: 'infrastructure', label: '🏛️ Алтари', desc: 'Ашрамы & Фермы' },
@@ -926,8 +1070,8 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
                   }}
                   className={`px-3.5 py-2 rounded-2xl text-xs font-serif font-bold whitespace-nowrap transition-all cursor-pointer ${
                     selectedCardCategory === cat.id
-                      ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
-                      : 'bg-black/40 text-slate-300 border border-white/10 hover:border-emerald-500/30'
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-lg shadow-amber-500/20 font-bold'
+                      : 'bg-black/40 text-slate-300 border border-white/10 hover:border-amber-500/30'
                   }`}
                 >
                   {cat.label}
@@ -935,81 +1079,282 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
               ))}
             </div>
 
-            {/* Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {UPGRADE_CARDS.filter((c) => c.category === selectedCardCategory).map((card) => {
-                const currentLevel = gameState.cards[card.id] || 0;
-                const cost = getCardCost(card, currentLevel);
-                const profitIncrease = getCardProfitIncrease(card, currentLevel);
-                const canAfford = gameState.coins >= cost;
-                const isLocked = gameState.level < card.requiredLevel;
-
-                return (
-                  <div
-                    key={card.id}
-                    className={`p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${
-                      isLocked 
-                        ? 'bg-black/30 border-white/5 opacity-60' 
-                        : 'bg-[#0d1527] border-amber-500/20 hover:border-amber-500/40 shadow-lg'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-2xl shrink-0">
-                        {card.icon}
-                      </div>
-
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-serif font-bold text-white truncate">{card.title}</h4>
-                          {currentLevel > 0 && (
-                            <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-amber-500/20 text-amber-300 font-mono font-bold">
-                              ур. {currentLevel}
-                            </span>
-                          )}
+            {/* Special Boosts / Click & Energy Upgrades Section */}
+            {selectedCardCategory === 'boosts' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* 1. Multitap */}
+                {(() => {
+                  const level = gameState.multitapLevel || 1;
+                  const cost = getMultitapCost(level);
+                  const canAfford = gameState.coins >= cost;
+                  return (
+                    <div className="p-4 rounded-2xl border bg-[#0d1527] border-amber-500/30 hover:border-amber-500/50 shadow-lg flex flex-col justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-2xl shrink-0">
+                          👆
                         </div>
-                        <p className="text-[11px] text-slate-400 leading-tight line-clamp-2">
-                          {card.description}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Stats & Upgrade Button */}
-                    <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
-                      <div>
-                        <p className="text-[10px] text-slate-400">Прибыль в час</p>
-                        <p className="text-xs font-serif font-bold text-emerald-400">
-                          +{formatNumberAbbreviated(profitIncrease)}
-                        </p>
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-serif font-bold text-white truncate">Мультитап Старца</h4>
+                            <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-amber-500/20 text-amber-300 font-mono font-bold">
+                              ур. {level}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 leading-tight">
+                            Увеличивает силу каждого клика на <strong>+1</strong> навсегда. Текущая сила: +{gameState.tapPower} за тап.
+                          </p>
+                        </div>
                       </div>
 
-                      <button
-                        onClick={() => handleBuyCard(card)}
-                        disabled={!canAfford || isLocked}
-                        className={`py-2 px-3.5 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
-                          isLocked
-                            ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                            : canAfford
-                            ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black shadow-md shadow-amber-500/20'
-                            : 'bg-black/50 border border-amber-500/30 text-amber-200/50 cursor-not-allowed'
-                        }`}
-                      >
-                        {isLocked ? (
-                          <>
-                            <Lock size={12} />
-                            <span>Ранг {card.requiredLevel}</span>
-                          </>
-                        ) : (
-                          <>
-                            <Coins size={13} />
-                            <span>{formatNumberAbbreviated(cost)}</span>
-                          </>
-                        )}
-                      </button>
+                      <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-[10px] text-slate-400">Сила тапа</p>
+                          <p className="text-xs font-serif font-bold text-amber-400">
+                            +{level + 1} за клик
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={handleUpgradeMultitap}
+                          disabled={!canAfford}
+                          className={`py-2 px-3.5 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                            canAfford
+                              ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black shadow-md shadow-amber-500/20'
+                              : 'bg-black/50 border border-amber-500/30 text-amber-200/50 cursor-not-allowed'
+                          }`}
+                        >
+                          <Coins size={13} />
+                          <span>{formatNumberAbbreviated(cost)}</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })()}
+
+                {/* 2. Energy Limit */}
+                {(() => {
+                  const level = gameState.energyLimitLevel || 1;
+                  const cost = getEnergyLimitCost(level);
+                  const canAfford = gameState.coins >= cost;
+                  return (
+                    <div className="p-4 rounded-2xl border bg-[#0d1527] border-amber-500/30 hover:border-amber-500/50 shadow-lg flex flex-col justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-2xl shrink-0">
+                          🏺
+                        </div>
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-serif font-bold text-white truncate">Сосуд Праны</h4>
+                            <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-cyan-500/20 text-cyan-300 font-mono font-bold">
+                              ур. {level}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 leading-tight">
+                            Расширяет предел запаса праны на <strong>+500</strong>. Текущий лимит: {gameState.maxEnergy}.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-[10px] text-slate-400">Вместимость</p>
+                          <p className="text-xs font-serif font-bold text-cyan-400">
+                            {gameState.maxEnergy + 500} праны
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={handleUpgradeEnergyLimit}
+                          disabled={!canAfford}
+                          className={`py-2 px-3.5 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                            canAfford
+                              ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 text-black shadow-md shadow-cyan-500/20'
+                              : 'bg-black/50 border border-cyan-500/30 text-cyan-200/50 cursor-not-allowed'
+                          }`}
+                        >
+                          <Coins size={13} />
+                          <span>{formatNumberAbbreviated(cost)}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 3. Recharge Speed */}
+                {(() => {
+                  const level = gameState.rechargeSpeedLevel || 1;
+                  const cost = getRechargeSpeedCost(level);
+                  const canAfford = gameState.coins >= cost;
+                  return (
+                    <div className="p-4 rounded-2xl border bg-[#0d1527] border-amber-500/30 hover:border-amber-500/50 shadow-lg flex flex-col justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-2xl shrink-0">
+                          ⏳
+                        </div>
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-serif font-bold text-white truncate">Скорость Зарядки</h4>
+                            <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-emerald-500/20 text-emerald-300 font-mono font-bold">
+                              ур. {level}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 leading-tight">
+                            Ускоряет естественную регенерацию праны на <strong>+30%</strong> за каждый уровень.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-[10px] text-slate-400">Скорость</p>
+                          <p className="text-xs font-serif font-bold text-emerald-400">
+                            +{level * 30}% быстрее
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={handleUpgradeRechargeSpeed}
+                          disabled={!canAfford}
+                          className={`py-2 px-3.5 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                            canAfford
+                              ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-black shadow-md shadow-emerald-500/20'
+                              : 'bg-black/50 border border-emerald-500/30 text-emerald-200/50 cursor-not-allowed'
+                          }`}
+                        >
+                          <Coins size={13} />
+                          <span>{formatNumberAbbreviated(cost)}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 4. Sacred Auto-Bot */}
+                {(() => {
+                  const level = gameState.autoBotLevel || 0;
+                  const cost = getAutoBotCost(level);
+                  const canAfford = gameState.coins >= cost;
+                  return (
+                    <div className="p-4 rounded-2xl border bg-[#0d1527] border-purple-500/30 hover:border-purple-500/50 shadow-lg flex flex-col justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-2xl shrink-0">
+                          🤖
+                        </div>
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-serif font-bold text-white truncate">Авто-Бот Старца</h4>
+                            <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-purple-500/20 text-purple-300 font-mono font-bold">
+                              {level > 0 ? `ур. ${level}` : 'Не нанят'}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 leading-tight">
+                            Автоматически тапает и приносит монеты каждую секунду, даже когда вы отдыхаете.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-[10px] text-slate-400">Автодоход</p>
+                          <p className="text-xs font-serif font-bold text-purple-400">
+                            +{formatNumberAbbreviated((level + 1) * 1200)}/час
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={handleUpgradeAutoBot}
+                          disabled={!canAfford}
+                          className={`py-2 px-3.5 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                            canAfford
+                              ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white shadow-md shadow-purple-500/20'
+                              : 'bg-black/50 border border-purple-500/30 text-purple-200/50 cursor-not-allowed'
+                          }`}
+                        >
+                          <Coins size={13} />
+                          <span>{formatNumberAbbreviated(cost)}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : (
+              /* Cards Grid */
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {UPGRADE_CARDS.filter((c) => c.category === selectedCardCategory).map((card) => {
+                  const currentLevel = gameState.cards[card.id] || 0;
+                  const cost = getCardCost(card, currentLevel);
+                  const profitIncrease = getCardProfitIncrease(card, currentLevel);
+                  const canAfford = gameState.coins >= cost;
+                  const isLocked = gameState.level < card.requiredLevel;
+
+                  return (
+                    <div
+                      key={card.id}
+                      className={`p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${
+                        isLocked 
+                          ? 'bg-black/30 border-white/5 opacity-60' 
+                          : 'bg-[#0d1527] border-amber-500/20 hover:border-amber-500/40 shadow-lg'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-2xl shrink-0">
+                          {card.icon}
+                        </div>
+
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-serif font-bold text-white truncate">{card.title}</h4>
+                            {currentLevel > 0 && (
+                              <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-amber-500/20 text-amber-300 font-mono font-bold">
+                                ур. {currentLevel}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-400 leading-tight line-clamp-2">
+                            {card.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Stats & Upgrade Button */}
+                      <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-[10px] text-slate-400">Прибыль в час</p>
+                          <p className="text-xs font-serif font-bold text-emerald-400">
+                            +{formatNumberAbbreviated(profitIncrease)}
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={() => handleBuyCard(card)}
+                          disabled={!canAfford || isLocked}
+                          className={`py-2 px-3.5 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                            isLocked
+                              ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                              : canAfford
+                              ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black shadow-md shadow-amber-500/20'
+                              : 'bg-black/50 border border-amber-500/30 text-amber-200/50 cursor-not-allowed'
+                          }`}
+                        >
+                          {isLocked ? (
+                            <>
+                              <Lock size={12} />
+                              <span>Ранг {card.requiredLevel}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Coins size={13} />
+                              <span>{formatNumberAbbreviated(cost)}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
           </div>
         )}
@@ -1418,58 +1763,239 @@ export const KarmaTapperSection: React.FC<KarmaTapperSectionProps> = ({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0d1428] border border-amber-500/40 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative"
+              className="bg-[#0d1428] border border-amber-500/40 rounded-3xl p-5 sm:p-6 max-w-md w-full space-y-4 shadow-2xl relative max-h-[88vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-serif font-bold text-white flex items-center gap-2">
-                  <Zap size={18} className="text-amber-400 fill-amber-400" />
-                  <span>Сакральные Бустеры</span>
-                </h3>
+              <div className="flex items-center justify-between sticky top-0 bg-[#0d1428]/90 backdrop-blur-md pb-2 z-10 border-b border-white/5">
+                <div>
+                  <h3 className="text-lg font-serif font-bold text-white flex items-center gap-2">
+                    <Zap size={18} className="text-amber-400 fill-amber-400" />
+                    <span>Бустеры & Прокачка Клика</span>
+                  </h3>
+                  <p className="text-xs text-slate-400">Улучшайте силу тапа, запас праны и скорость</p>
+                </div>
                 <button
                   onClick={() => setIsBoostModalOpen(false)}
-                  className="text-slate-400 hover:text-white p-1"
+                  className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="space-y-3">
-                {/* 1. Full Energy Boost */}
-                <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-between gap-3">
-                  <div className="space-y-0.5">
-                    <h4 className="text-sm font-serif font-bold text-white">Полная Энергия</h4>
-                    <p className="text-xs text-slate-400">Мгновенно восстанавливает 100% праны (базово: +100 за 10 мин)</p>
-                    <span className="text-[10px] text-amber-400 font-bold">
-                      Осталось: {gameState.fullEnergyBoostsLeft} из 6 сегодня
-                    </span>
+              {/* SECTION 1: Daily Free Boosts */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-serif font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>🎁 Ежедневные Бесплатные Бусты</span>
+                </h4>
+
+                <div className="space-y-2.5">
+                  {/* 1. Full Energy Boost */}
+                  <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <h5 className="text-sm font-serif font-bold text-white flex items-center gap-1.5">
+                        <span>⚡ Полная Энергия</span>
+                      </h5>
+                      <p className="text-[11px] text-slate-400 leading-tight">Мгновенный заряд до 100% праны</p>
+                      <span className="text-[10px] text-amber-400 font-bold">
+                        Осталось: {gameState.fullEnergyBoostsLeft} из 6 сегодня
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={handleUseFullEnergyBoost}
+                      disabled={gameState.fullEnergyBoostsLeft <= 0 || gameState.energy >= gameState.maxEnergy}
+                      className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-serif font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
+                    >
+                      Зарядить
+                    </button>
                   </div>
 
-                  <button
-                    onClick={handleUseFullEnergyBoost}
-                    disabled={gameState.fullEnergyBoostsLeft <= 0 || gameState.energy >= gameState.maxEnergy}
-                    className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-serif font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    Активировать
-                  </button>
+                  {/* 2. Turbo Multitap Boost */}
+                  <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <h5 className="text-sm font-serif font-bold text-white flex items-center gap-1.5">
+                        <span>🔥 Турбо-Аура (5X на 20 сек)</span>
+                      </h5>
+                      <p className="text-[11px] text-slate-400 leading-tight">Умножает силу каждого тапа в 5 раз</p>
+                      <span className="text-[10px] text-amber-400 font-bold">
+                        Осталось: {gameState.turboBoostsLeft} из 3 сегодня
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={handleUseTurboBoost}
+                      disabled={gameState.turboBoostsLeft <= 0 || turboActiveUntil !== null}
+                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-red-500 to-amber-500 hover:brightness-110 text-white font-serif font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
+                    >
+                      {turboSecondsLeft > 0 ? `${turboSecondsLeft}с` : 'Турбо 5X'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 2: Permanent Click & Energy Upgrades */}
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-serif font-bold text-amber-300 uppercase tracking-wider">
+                    ⚡ Постоянные Улучшения за $CHUBUK
+                  </h4>
+                  <div className="flex items-center gap-1 text-xs text-amber-400 font-bold">
+                    <Coins size={12} />
+                    <span>{formatNumberAbbreviated(gameState.coins)}</span>
+                  </div>
                 </div>
 
-                {/* 2. Turbo Multitap Boost */}
-                <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-between gap-3">
-                  <div className="space-y-0.5">
-                    <h4 className="text-sm font-serif font-bold text-white">Турбо-Аура (5X на 20 сек)</h4>
-                    <p className="text-xs text-slate-400">Умножает силу каждого тапа в 5 раз</p>
-                    <span className="text-[10px] text-amber-400 font-bold">
-                      Осталось: {gameState.turboBoostsLeft} из 3 сегодня
-                    </span>
-                  </div>
+                <div className="space-y-2.5">
+                  {/* Upgrade 1: Multitap */}
+                  {(() => {
+                    const level = gameState.multitapLevel || 1;
+                    const cost = getMultitapCost(level);
+                    const canAfford = gameState.coins >= cost;
+                    return (
+                      <div className="p-3.5 rounded-2xl bg-black/40 border border-amber-500/20 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center text-lg shrink-0">
+                            👆
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h5 className="text-xs font-serif font-bold text-white">Мультитап</h5>
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono">
+                                ур. {level}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-slate-400">+1 к каждому тапу (+{level + 1} за клик)</p>
+                          </div>
+                        </div>
 
-                  <button
-                    onClick={handleUseTurboBoost}
-                    disabled={gameState.turboBoostsLeft <= 0 || turboActiveUntil !== null}
-                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-amber-500 hover:brightness-110 text-white font-serif font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    Запустить
-                  </button>
+                        <button
+                          onClick={handleUpgradeMultitap}
+                          disabled={!canAfford}
+                          className={`px-3 py-2 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                            canAfford
+                              ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-md shadow-amber-500/20'
+                              : 'bg-black/50 border border-white/10 text-slate-500 cursor-not-allowed'
+                          }`}
+                        >
+                          <Coins size={12} />
+                          <span>{formatNumberAbbreviated(cost)}</span>
+                        </button>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Upgrade 2: Max Energy */}
+                  {(() => {
+                    const level = gameState.energyLimitLevel || 1;
+                    const cost = getEnergyLimitCost(level);
+                    const canAfford = gameState.coins >= cost;
+                    return (
+                      <div className="p-3.5 rounded-2xl bg-black/40 border border-cyan-500/20 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center justify-center text-lg shrink-0">
+                            🏺
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h5 className="text-xs font-serif font-bold text-white">Сосуд Праны</h5>
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-mono">
+                                ур. {level}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-slate-400">+500 к емкости ({gameState.maxEnergy + 500})</p>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={handleUpgradeEnergyLimit}
+                          disabled={!canAfford}
+                          className={`px-3 py-2 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                            canAfford
+                              ? 'bg-cyan-500 hover:bg-cyan-400 text-black shadow-md shadow-cyan-500/20'
+                              : 'bg-black/50 border border-white/10 text-slate-500 cursor-not-allowed'
+                          }`}
+                        >
+                          <Coins size={12} />
+                          <span>{formatNumberAbbreviated(cost)}</span>
+                        </button>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Upgrade 3: Recharge Speed */}
+                  {(() => {
+                    const level = gameState.rechargeSpeedLevel || 1;
+                    const cost = getRechargeSpeedCost(level);
+                    const canAfford = gameState.coins >= cost;
+                    return (
+                      <div className="p-3.5 rounded-2xl bg-black/40 border border-emerald-500/20 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center text-lg shrink-0">
+                            ⏳
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h5 className="text-xs font-serif font-bold text-white">Регенерация</h5>
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono">
+                                ур. {level}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-slate-400">+{level * 30}% к скорости зарядки</p>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={handleUpgradeRechargeSpeed}
+                          disabled={!canAfford}
+                          className={`px-3 py-2 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                            canAfford
+                              ? 'bg-emerald-500 hover:bg-emerald-400 text-black shadow-md shadow-emerald-500/20'
+                              : 'bg-black/50 border border-white/10 text-slate-500 cursor-not-allowed'
+                          }`}
+                        >
+                          <Coins size={12} />
+                          <span>{formatNumberAbbreviated(cost)}</span>
+                        </button>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Upgrade 4: Auto-Bot */}
+                  {(() => {
+                    const level = gameState.autoBotLevel || 0;
+                    const cost = getAutoBotCost(level);
+                    const canAfford = gameState.coins >= cost;
+                    return (
+                      <div className="p-3.5 rounded-2xl bg-black/40 border border-purple-500/20 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center text-lg shrink-0">
+                            🤖
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h5 className="text-xs font-serif font-bold text-white">Авто-Бот Chubuk</h5>
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-mono">
+                                {level > 0 ? `ур. ${level}` : 'Выкл'}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-slate-400">Пассивный сбор +{(level + 1) * 1200}/час</p>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={handleUpgradeAutoBot}
+                          disabled={!canAfford}
+                          className={`px-3 py-2 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                            canAfford
+                              ? 'bg-purple-500 hover:bg-purple-400 text-white shadow-md shadow-purple-500/20'
+                              : 'bg-black/50 border border-white/10 text-slate-500 cursor-not-allowed'
+                          }`}
+                        >
+                          <Coins size={12} />
+                          <span>{formatNumberAbbreviated(cost)}</span>
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </motion.div>

@@ -17,21 +17,29 @@ import {
   persistentMultipleTabManager, 
   doc, 
   setDoc, 
-  getDoc 
+  getDoc,
+  setLogLevel
 } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
+
+// Suppress benign connection retry / offline info logs in console
+try {
+  setLogLevel('error');
+} catch (e) {
+  // Ignore if already set
+}
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
-// Initialize Firestore with robust multi-tab local caching and auto-detected long polling
+// Initialize Firestore with robust multi-tab local caching and forced long polling for sandboxed iframes
 export const db = initializeFirestore(
   app,
   {
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager()
     }),
-    experimentalAutoDetectLongPolling: true
+    experimentalForceLongPolling: true
   },
   firebaseConfig.firestoreDatabaseId
 );

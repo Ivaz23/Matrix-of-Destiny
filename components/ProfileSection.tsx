@@ -50,8 +50,10 @@ import { useAuth } from '../hooks/useAuth';
 import { useFirestore } from '../hooks/useFirestore';
 import { getTopupHistory, TopupTransaction } from '../services/referralService';
 import { getRemainingAttempts, getTapperCoinsBalance, isVipUnlocked } from '../services/usageLimitService';
+import { getUserCustomAvatar, removeUserCustomAvatar, UserCustomAvatar, ARCANA_ARCHETYPES_RU } from '../services/avatarService';
 import AuthModal from './AuthModal';
 import PartnerPromoSection from './PartnerPromoSection';
+import MagicAvatarModal from './MagicAvatarModal';
 
 interface ProfileSectionProps {
   userInput: UserInput | null;
@@ -106,6 +108,17 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   }, []);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [customAvatar, setCustomAvatar] = useState<UserCustomAvatar | null>(() => getUserCustomAvatar());
+
+  useEffect(() => {
+    const handleAvatarUpdate = (e: any) => {
+      setCustomAvatar(e.detail || getUserCustomAvatar());
+    };
+    window.addEventListener('chubuk_avatar_updated', handleAvatarUpdate);
+    return () => window.removeEventListener('chubuk_avatar_updated', handleAvatarUpdate);
+  }, []);
+
   const [proxyUrl, setProxyUrl] = useState('');
   const [proxyTestStatus, setProxyTestStatus] = useState<{
     testing: boolean;
@@ -465,7 +478,14 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                 {user ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
-                      {user.photoURL ? (
+                      {customAvatar?.imageUrl ? (
+                        <div className="relative cursor-pointer" onClick={() => setIsAvatarModalOpen(true)}>
+                          <img src={customAvatar.imageUrl} alt="Avatar" className="w-11 h-11 rounded-full border-2 border-amber-400 object-cover shadow-md shadow-amber-500/20" />
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-black text-[9px] flex items-center justify-center font-bold">
+                            ✨
+                          </div>
+                        </div>
+                      ) : user.photoURL ? (
                         <img src={user.photoURL} alt="" className="w-10 h-10 rounded-full border border-amber-500/30" />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold font-serif">
@@ -497,6 +517,87 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                     >
                       <LogIn size={15} />
                       <span>Войти / Создать аккаунт</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* MAGIC AI AVATAR OF DESTINY CARD */}
+              <div className="bg-gradient-to-b from-[#111936] to-[#0b1020] backdrop-blur-xl border border-amber-500/40 rounded-3xl p-6 space-y-4 shadow-xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-serif font-bold text-white flex items-center gap-2">
+                    <Sparkles size={18} className="text-amber-400 fill-amber-400/20" />
+                    <span>Магический AI Аватар</span>
+                  </h3>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold uppercase">
+                    Матрица Судьбы
+                  </span>
+                </div>
+
+                {customAvatar ? (
+                  <div className="space-y-3.5">
+                    <div className="flex items-center gap-4 p-3 rounded-2xl bg-black/40 border border-amber-500/20">
+                      <div className="relative shrink-0">
+                        <img 
+                          src={customAvatar.imageUrl} 
+                          alt="Avatar" 
+                          className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-400 shadow-lg shadow-amber-500/20"
+                        />
+                        <div className="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-md bg-black/80 border border-amber-400 text-[9px] text-amber-300 font-bold">
+                          {customAvatar.dayArcana}А
+                        </div>
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-serif font-bold text-white flex items-center gap-1.5 truncate">
+                          <span>{customAvatar.userName}</span>
+                          <span className="text-[10px] text-amber-400">({customAvatar.zodiacSign})</span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 line-clamp-2 mt-0.5 italic">
+                          {customAvatar.blessingText}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsAvatarModalOpen(true)}
+                        className="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-serif font-bold flex items-center justify-center gap-1.5 transition-all shadow-md shadow-amber-500/20 cursor-pointer"
+                      >
+                        <RefreshCw size={13} />
+                        <span>Обновить образ</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm('Удалить магический аватар профиля?')) {
+                            removeUserCustomAvatar(user?.uid);
+                          }
+                        }}
+                        className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium flex items-center justify-center gap-1.5 transition-all border border-white/5 cursor-pointer"
+                      >
+                        <Trash2 size={13} className="text-red-400" />
+                        <span>Сбросить</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3.5">
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Нейросеть сгенерирует уникальный сакральный портрет вашей души на основе ваших личных арканов (визитка, зона комфорта, предназначение) и стихии знака зодиака.
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsAvatarModalOpen(true)}
+                      className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-serif font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+                    >
+                      <Sparkles size={16} className="fill-black" />
+                      <span>Сгенерировать Магический Аватар (AI)</span>
                     </button>
                   </div>
                 )}
@@ -923,6 +1024,15 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      {/* Magic Avatar Modal */}
+      <MagicAvatarModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        userInput={userInput}
+        userId={user?.uid}
+        onAvatarSaved={(avatar) => setCustomAvatar(avatar)}
       />
     </div>
   );
