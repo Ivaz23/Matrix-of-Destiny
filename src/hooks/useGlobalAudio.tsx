@@ -8,6 +8,10 @@ interface AudioContextType {
   setLoadingId: (id: string | number | null) => void;
   playAudio: (text: string, id: string | number, voice?: string) => Promise<void>;
   stopAudio: () => void;
+  playSolfeggioTone: (freq?: number, durationMs?: number) => void;
+  isMuted: boolean;
+  toggleMute: () => void;
+  isLoaded: boolean;
   error: string | null;
 }
 
@@ -17,9 +21,54 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [playingId, setPlayingId] = useState<string | number | null>(null);
   const [loadingId, setLoadingId] = useState<string | number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(true);
   
   const audioCtxRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
+
+  const getOrCreateAudioContext = () => {
+    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    return audioCtxRef.current;
+  };
+
+  const toggleMute = () => {
+    setIsMuted(prev => {
+      if (!prev) {
+        stopAudio();
+      }
+      return !prev;
+    });
+  };
+
+  const playSolfeggioTone = (freq: number = 528, durationMs: number = 1500) => {
+    if (isMuted) return;
+    try {
+      const ctx = getOrCreateAudioContext();
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + durationMs / 1000);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + durationMs / 1000 + 0.1);
+    } catch (e) {
+      console.warn("Could not play solfeggio tone:", e);
+    }
+  };
 
   const stopAudio = () => {
     if (sourceRef.current) {
@@ -33,6 +82,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const playAudio = async (text: string, id: string | number, voice?: string) => {
+    if (isMuted) return;
     if (playingId === id) {
       stopAudio();
       return;
@@ -43,11 +93,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setError(null);
 
     try {
-      if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-      }
-      
-      const ctx = audioCtxRef.current;
+      const ctx = getOrCreateAudioContext();
       if (ctx.state === 'suspended') {
         await ctx.resume();
       }
@@ -78,7 +124,18 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   return (
-    <GlobalAudioContext.Provider value={{ playingId, loadingId, setLoadingId, playAudio, stopAudio, error }}>
+    <GlobalAudioContext.Provider value={{ 
+      playingId, 
+      loadingId, 
+      setLoadingId, 
+      playAudio, 
+      stopAudio, 
+      playSolfeggioTone,
+      isMuted,
+      toggleMute,
+      isLoaded,
+      error 
+    }}>
       {children}
     </GlobalAudioContext.Provider>
   );

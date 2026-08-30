@@ -42,6 +42,7 @@ const OrderSection: React.FC<OrderSectionProps> = ({
         astrology,
         analysis: analysis || {
           introduction: `Персональный расчет энергий Матрицы Судьбы для ${userInput.name}`,
+          forecast: 'Годовой цикл трансформации и раскрытия духовного потенциала.',
           sections: [
             { title: 'Энергия Личности', content: `Аркан ${matrix.day} отражает базовый код вашего проявления в социуме.` },
             { title: 'Таланты и Духовность', content: `Аркан ${matrix.month} указывает на высшие таланты, дарованные от рождения.` },

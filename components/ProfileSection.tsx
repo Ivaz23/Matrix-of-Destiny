@@ -186,7 +186,8 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
         return;
       }
 
-      const mergedCount = await mergeLocalCalculations(localCalcs);
+      const mergeResult = await mergeLocalCalculations(localCalcs);
+      const mergedCount = mergeResult.mergedCount;
       const nowStr = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
       setLastSyncTime(nowStr);
       try {
@@ -701,7 +702,11 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                               onClick={() => {
                                 const fullText = [
                                   calc.astrologyResult?.introduction,
-                                  calc.astrologyResult?.sections.map(s => `${s.title}: ${s.content}`).join('\n')
+                                  calc.astrologyResult?.natalChart,
+                                  calc.astrologyResult?.aspects?.map(a => `${a.title}: ${a.description}`).join('\n'),
+                                  calc.astrologyResult?.spiritualPath,
+                                  calc.astrologyResult?.professionalPath,
+                                  calc.astrologyResult?.advice
                                 ].filter(Boolean).join('\n\n');
                                 handleDownload(fullText.slice(0, 4500), `astro_${calc.id}`, `dl_astro_${calc.id}`);
                               }}
@@ -715,9 +720,9 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                             <button 
                               onClick={() => {
                                 const fullText = [
-                                  calc.tarotReading?.question,
-                                  calc.tarotReading?.cards.map(c => `${c.name}: ${c.meaning}`).join('\n'),
-                                  calc.tarotReading?.interpretation
+                                  calc.tarotReading?.cards?.map(c => c.name).join(', '),
+                                  calc.tarotReading?.interpretation,
+                                  calc.tarotReading?.advice
                                 ].filter(Boolean).join('\n\n');
                                 handleDownload(fullText.slice(0, 4500), `tarot_${calc.id}`, `dl_tarot_${calc.id}`);
                               }}

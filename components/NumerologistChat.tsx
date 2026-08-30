@@ -97,7 +97,7 @@ const NumerologistChat: React.FC<NumerologistChatProps> = ({ userInput, matrix, 
   const deleteSession = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (sessions.length === 1) {
-      const resetSession = { ...sessions[0], messages: [{ role: 'model', text: 'История очищена. Я слушаю.' }] };
+      const resetSession: ChatSession = { ...sessions[0], messages: [{ role: 'model' as const, text: 'История очищена. Я слушаю.' }] };
       setSessions([resetSession]);
       return;
     }

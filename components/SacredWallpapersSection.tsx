@@ -37,14 +37,14 @@ export const SacredWallpapersSection: React.FC<SacredWallpapersSectionProps> = (
   const [exportSuccess, setExportSuccess] = useState(false);
 
   const userName = userInput?.name || 'Странник';
-  const litho = calculateLithotherapyProfile(userInput, matrix);
+  const litho = calculateLithotherapyProfile(matrix);
   const primaryStone = litho.primaryStones[0]?.name || 'Аметист';
   const wealthStone = litho.wealthStones[0]?.name || 'Пирит';
 
   const centerArcana = matrix?.center || 10;
   const destinyArcana = matrix?.destiny || 19;
-  const moneyArcana = matrix?.money || 15;
-  const loveArcana = matrix?.love || 6;
+  const moneyArcana = matrix?.earth || 15;
+  const loveArcana = matrix?.month || 6;
 
   // Default affirmations by theme
   const themeQuotes: Record<WallpaperTheme, string> = {
