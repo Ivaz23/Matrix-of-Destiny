@@ -25,12 +25,14 @@ function getAI(): GoogleGenAI {
 function normalizeModelName(model?: string): string {
   if (!model) return 'gemini-3.7-flash';
   if (model.includes('tts')) return 'gemini-3.1-flash-tts-preview';
-  if (model.includes('image')) return 'gemini-3.1-flash-lite-image';
-  if (model.includes('pro')) return 'gemini-3.7-flash';
-  if (model.includes('lite')) return 'gemini-3.1-flash-lite';
-  if (model.includes('flash')) return 'gemini-3.7-flash';
+  if (model.includes('image')) return 'gemini-3.1-flash-image';
+  if (model === 'gemini-3.1-flash-lite' || model.includes('lite')) return 'gemini-3.1-flash-lite';
+  if (model === 'gemini-2.5-flash' || model.includes('2.5')) return 'gemini-2.5-flash';
   return 'gemini-3.7-flash';
 }
+
+const TEXT_FALLBACK_MODELS = ['gemini-3.7-flash', 'gemini-2.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.0-flash'];
+const IMAGE_FALLBACK_MODELS = ['gemini-3.1-flash-image', 'gemini-3.1-flash-lite-image', 'imagen-3.0-generate-002'];
 
 async function startServer() {
   const app = express();
@@ -70,40 +72,58 @@ async function startServer() {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
-  // Server-side Gemini API proxy endpoint
+  // Server-side Gemini API proxy endpoint with resilient multi-model fallback
   app.post("/api/gemini/generate", async (req, res) => {
     try {
       const { model: requestedModel, contents, config } = req.body;
-      const model = normalizeModelName(requestedModel);
+      const initialModel = normalizeModelName(requestedModel);
       const ai = getAI();
 
       // Check if search tool was requested
       const hasSearchTool = config?.tools?.some((t: any) => t && 'googleSearch' in t);
 
-      let response;
-      try {
-        response = await ai.models.generateContent({
-          model,
-          contents,
-          config
-        });
-      } catch (firstErr: any) {
-        const errMsg = firstErr?.message || String(firstErr);
-        // If search tool failed (location unsupported 400 or other tool error), fallback without search tool
-        if (hasSearchTool || errMsg.includes('location') || errMsg.includes('tool') || errMsg.includes('FAILED_PRECONDITION')) {
-          console.warn("Search tool / primary request failed, falling back without search tools:", errMsg);
-          const cleanConfig = { ...config };
-          if (cleanConfig.tools) {
-            delete cleanConfig.tools;
-          }
+      // Construct model priority list starting with requested model
+      const candidateModels = [
+        initialModel,
+        ...TEXT_FALLBACK_MODELS.filter(m => m !== initialModel)
+      ];
+
+      let lastError: any = null;
+      let response: any = null;
+
+      // Try candidate models in order
+      for (const model of candidateModels) {
+        try {
           response = await ai.models.generateContent({
-            model: 'gemini-3.7-flash',
+            model,
             contents,
-            config: cleanConfig
+            config
           });
-        } else {
-          throw firstErr;
+          if (response) break;
+        } catch (err: any) {
+          lastError = err;
+          const errMsg = err?.message || String(err);
+          
+          // If search tool failed, retry immediately without search tools on fallback
+          if (hasSearchTool || errMsg.includes('location') || errMsg.includes('tool') || errMsg.includes('FAILED_PRECONDITION')) {
+            try {
+              const cleanConfig = { ...config };
+              if (cleanConfig.tools) delete cleanConfig.tools;
+              response = await ai.models.generateContent({
+                model,
+                contents,
+                config: cleanConfig
+              });
+              if (response) break;
+            } catch (innerErr: any) {
+              lastError = innerErr;
+            }
+          }
         }
+      }
+
+      if (!response && lastError) {
+        throw lastError;
       }
 
       res.json({
@@ -134,32 +154,28 @@ async function startServer() {
       let response: any = null;
       let usedModel = 'gemini-3.1-flash-image';
 
-      // Try generating image with primary model
-      try {
-        response = await ai.models.generateContent({
-          model: 'gemini-3.1-flash-image',
-          contents: {
-            parts: [{ text: prompt }]
-          },
-          config: {
-            imageConfig: {
-              aspectRatio: aspectRatio as any,
-              imageSize: imageSize as any
-            }
-          }
-        });
-      } catch (err1: any) {
-        console.warn("Primary image model failed, trying fallback gemini-3.1-flash-lite-image:", err1?.message || err1);
-        usedModel = 'gemini-3.1-flash-lite-image';
+      // Iterate through supported image models
+      for (const model of IMAGE_FALLBACK_MODELS) {
         try {
+          usedModel = model;
           response = await ai.models.generateContent({
-            model: 'gemini-3.1-flash-lite-image',
+            model,
             contents: {
               parts: [{ text: prompt }]
+            },
+            config: {
+              imageConfig: {
+                aspectRatio: aspectRatio as any,
+                imageSize: imageSize as any
+              }
             }
           });
-        } catch (err2: any) {
-          throw err2;
+          if (response?.candidates?.[0]?.content?.parts?.some((p: any) => p.inlineData)) {
+            break;
+          }
+        } catch (err: any) {
+          // Continue to next image model fallback
+          console.warn(`Model ${model} image attempt failed:`, err?.message || err);
         }
       }
 
@@ -178,9 +194,10 @@ async function startServer() {
       }
 
       if (!imageUrl) {
-        return res.status(422).json({
-          error: "Image generation model did not return image data",
-          text: description.trim() || response?.text || "",
+        return res.json({
+          fallback: true,
+          message: "AI image model quota reached, procedural sacred talisman activated.",
+          description: description.trim() || response?.text || "",
           model: usedModel
         });
       }
@@ -192,11 +209,11 @@ async function startServer() {
         timestamp: Date.now()
       });
     } catch (error: any) {
-      console.error("Server Image Generation Error:", error?.message || error);
-      const statusCode = error?.status === 429 || error?.message?.includes('429') ? 429 : 500;
-      res.status(statusCode).json({
-        error: error?.message || "Failed to generate image",
-        status: statusCode
+      console.warn("Server Image Generation Handled Error:", error?.message || error);
+      res.json({
+        fallback: true,
+        message: "Image generation falling back to procedural talisman.",
+        error: error?.message
       });
     }
   });
