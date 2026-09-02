@@ -126,6 +126,9 @@ export function formatAuthError(error: any): string {
   if (code === 'auth/operation-not-allowed') {
     return "Вход через Google временно отключен в консоли Firebase для данного проекта. Войдите с помощью Email и пароля или выберите «Быстрый вход в 1 клик».";
   }
+  if (code === 'auth/unauthorized-domain') {
+    return "Домен приложения не добавлен в список разрешенных в Firebase Auth (Authorized Domains). Чтобы войти через Google, добавьте домен run.app в Firebase Console -> Authentication -> Settings -> Authorized domains, либо используйте надежный вход через Email / Пароль.";
+  }
   if (code === 'auth/popup-blocked') {
     return "Всплывающее окно Google заблокировано браузером. Разрешите всплывающие окна или используйте вход по email.";
   }
