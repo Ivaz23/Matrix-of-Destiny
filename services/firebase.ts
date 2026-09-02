@@ -233,9 +233,63 @@ export const signInGuest = async () => {
     const result = await signInAnonymously(auth);
     return result.user;
   } catch (error: any) {
-    console.error("Error signing in anonymously:", error);
-    throw new Error(formatAuthError(error));
+    console.warn("Firebase anonymous auth skipped/offline, using robust local session:", error);
+    // Create instant persistent guest session
+    const guestId = 'guest_' + Math.random().toString(36).substring(2, 11);
+    const guestUser = {
+      uid: guestId,
+      displayName: 'Гость (Автономно)',
+      email: null,
+      photoURL: null,
+      isAnonymous: true,
+      providerId: 'anonymous'
+    };
+    localStorage.setItem('chubuk_local_user', JSON.stringify(guestUser));
+    return guestUser as any;
   }
+};
+
+export const signInWithTelegram = async (telegramInput: { username?: string; id?: string; first_name?: string; photo_url?: string }) => {
+  const cleanUsername = (telegramInput.username || telegramInput.first_name || 'Странник').replace('@', '').trim();
+  const tgId = telegramInput.id || 'tg_' + Math.random().toString(36).substring(2, 9);
+  const tgUser = {
+    uid: `tg_${tgId}`,
+    displayName: `@${cleanUsername}`,
+    email: `${cleanUsername.toLowerCase()}@telegram.user`,
+    photoURL: telegramInput.photo_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanUsername}`,
+    isAnonymous: false,
+    providerId: 'telegram'
+  };
+
+  localStorage.setItem('chubuk_local_user', JSON.stringify(tgUser));
+
+  // Try to sync to Firestore if connected
+  try {
+    await setDoc(doc(db, 'users', tgUser.uid), {
+      ...tgUser,
+      authProvider: 'telegram',
+      lastLoginAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (e) {
+    console.debug("Firestore offline sync skipped for Telegram user (session saved locally):", e);
+  }
+
+  return tgUser as any;
+};
+
+export const getLocalCustomUser = () => {
+  try {
+    const raw = localStorage.getItem('chubuk_local_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const clearLocalCustomUser = () => {
+  try {
+    localStorage.removeItem('chubuk_local_user');
+  } catch {}
 };
 
 export const resetPassword = async (email: string) => {
@@ -248,6 +302,14 @@ export const resetPassword = async (email: string) => {
   }
 };
 
-export const logout = () => signOut(auth);
+export const logout = async () => {
+  clearLocalCustomUser();
+  try {
+    await signOut(auth);
+  } catch (e) {
+    console.warn("SignOut error:", e);
+  }
+};
+
 
 

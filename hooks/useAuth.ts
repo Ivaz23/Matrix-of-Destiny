@@ -6,17 +6,35 @@ import {
   signInWithGoogle, 
   signInWithEmail, 
   signUpWithEmail, 
-  signInGuest, 
+  signInGuest as fbSignInGuest, 
+  signInWithTelegram as fbSignInTelegram,
+  getLocalCustomUser,
   resetPassword,
   logout 
 } from '../services/firebase';
 
+export interface AppAuthUser {
+  uid: string;
+  displayName: string | null;
+  email: string | null;
+  photoURL: string | null;
+  isAnonymous?: boolean;
+  providerId?: string;
+}
+
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppAuthUser | User | null>(() => getLocalCustomUser());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
+
+    // First check local custom/telegram user
+    const localUser = getLocalCustomUser();
+    if (localUser && isMounted) {
+      setUser(localUser);
+      setLoading(false);
+    }
 
     // Safety timeout: If Firebase auth hangs in iframe/preview, don't block the UI
     const timer = setTimeout(() => {
@@ -28,7 +46,12 @@ export const useAuth = () => {
         auth, 
         (currentUser) => {
           if (isMounted) {
-            setUser(currentUser);
+            if (currentUser) {
+              setUser(currentUser);
+            } else {
+              const currentLocal = getLocalCustomUser();
+              setUser(currentLocal);
+            }
             setLoading(false);
             clearTimeout(timer);
           }
@@ -54,6 +77,23 @@ export const useAuth = () => {
     }
   }, []);
 
+  const handleTelegramSignIn = async (telegramInput: { username?: string; id?: string; first_name?: string; photo_url?: string }) => {
+    const tgUser = await fbSignInTelegram(telegramInput);
+    setUser(tgUser);
+    return tgUser;
+  };
+
+  const handleGuestSignIn = async () => {
+    const guestUser = await fbSignInGuest();
+    setUser(guestUser);
+    return guestUser;
+  };
+
+  const handleSignOut = async () => {
+    await logout();
+    setUser(null);
+  };
+
   return {
     user,
     loading,
@@ -61,9 +101,11 @@ export const useAuth = () => {
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
-    signInGuest,
+    signInWithTelegram: handleTelegramSignIn,
+    signInGuest: handleGuestSignIn,
     resetPassword,
-    signOut: logout
+    signOut: handleSignOut
   };
 };
+
 
