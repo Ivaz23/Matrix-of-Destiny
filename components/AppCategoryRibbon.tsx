@@ -21,6 +21,7 @@ interface CategoryItem {
 
 const CATEGORIES: CategoryItem[] = [
   { id: 'matrix', label: 'Матрица Судьбы', shortLabel: 'Матрица', icon: '🌟', highlight: true },
+  { id: 'keyto', label: 'KeyTo: Денежная Сила & Циклы', shortLabel: 'KeyTo Деньги 💰', icon: '💰', badge: 'HOT', highlight: true },
   { id: 'lifespan', label: 'Хронос: Сроки & Долголетие', shortLabel: 'Сроки & Долголетие ⏳', icon: '⏳', badge: 'NEW', highlight: true },
   { id: 'psychology', label: 'Психологический Портрет (+/-)', shortLabel: 'Психология (+/-)', icon: '🧠', badge: 'NEW', highlight: true },
   { id: 'caching', label: 'Кэширование & Память', shortLabel: 'Кэширование ⚡', icon: '⚡', badge: 'TURBO', highlight: true },

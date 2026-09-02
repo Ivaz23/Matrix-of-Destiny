@@ -172,9 +172,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         {/* Modal Body */}
         <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
           {error && (
-            <div className="p-3 rounded-2xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs flex items-start gap-2.5 leading-relaxed animate-shake">
-              <AlertCircle size={18} className="shrink-0 text-red-400 mt-0.5" />
-              <span>{error}</span>
+            <div className="p-3.5 rounded-2xl bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs flex flex-col gap-2 leading-relaxed animate-shake">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle size={18} className="shrink-0 text-amber-400 mt-0.5" />
+                <span className="text-slate-200">{error}</span>
+              </div>
+              {error.includes('Google') && (
+                <div className="mt-1 pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                  <span className="text-[11px] text-amber-300">Рекомендуем войти через Email:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('register');
+                      setError(null);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-[11px] transition-colors cursor-pointer"
+                  >
+                    Регистрация по почте
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

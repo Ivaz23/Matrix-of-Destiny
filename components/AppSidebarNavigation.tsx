@@ -33,13 +33,15 @@ import {
   ShieldAlert,
   Database,
   HardDrive,
-  ShoppingBag
+  ShoppingBag,
+  TrendingUp
 } from 'lucide-react';
 
 import { isUserAdmin } from '../services/usageLimitService';
 
 export type AppNavTabId = 
   | 'matrix' 
+  | 'keyto'
   | 'psychology'
   | 'meditation'
   | 'tapper'
@@ -89,6 +91,14 @@ const NAV_CATEGORIES: NavCategory[] = [
         description: 'Сакральная геометрия и 22 аркана души',
         icon: Sparkles,
         color: '#f59e0b'
+      },
+      {
+        id: 'keyto',
+        label: 'KeyTo: Денежная Сила & 31 Энергия',
+        description: 'Цифровая психология, закон циклов (+3), наработка адекватности и распаковка денег',
+        icon: TrendingUp,
+        badge: 'HOT',
+        color: '#eab308'
       },
       {
         id: 'lifespan',

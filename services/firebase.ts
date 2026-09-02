@@ -124,7 +124,7 @@ export function formatAuthError(error: any): string {
     return "Окно входа Google было закрыто до завершения.";
   }
   if (code === 'auth/operation-not-allowed') {
-    return "Данный способ входа временно отключен в конфигурации проекта.";
+    return "Вход через Google временно отключен в консоли Firebase для данного проекта. Войдите с помощью Email и пароля или выберите «Быстрый вход в 1 клик».";
   }
   if (code === 'auth/popup-blocked') {
     return "Всплывающее окно Google заблокировано браузером. Разрешите всплывающие окна или используйте вход по email.";

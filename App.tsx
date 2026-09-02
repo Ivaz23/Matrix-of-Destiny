@@ -64,6 +64,7 @@ const AkashicRecordsSection = lazy(() => import('./components/AkashicRecordsSect
 const PowerCalendarSection = lazy(() => import('./components/PowerCalendarSection'));
 const KarmaTapperSection = lazy(() => import('./components/KarmaTapperSection'));
 const MeditationCenter = lazy(() => import('./components/MeditationCenter'));
+const KeyToPsychologySection = lazy(() => import('./components/KeyToPsychologySection').then(m => ({ default: m.KeyToPsychologySection })));
 const PsychologicalPortraitSection = lazy(() => import('./components/PsychologicalPortraitSection').then(m => ({ default: m.PsychologicalPortraitSection })));
 const CachingSection = lazy(() => import('./components/CachingSection'));
 const LifespanSection = lazy(() => import('./components/LifespanSection'));
@@ -604,6 +605,14 @@ export const App: React.FC = () => {
                         />
                       </div>
                     )}
+                  </div>
+                ) : activeTab === 'keyto' ? (
+                  <div className="w-full">
+                    <KeyToPsychologySection 
+                      userInput={userInput} 
+                      matrix={matrix} 
+                      onNavigateToMatrix={() => setActiveTab('matrix')}
+                    />
                   </div>
                 ) : activeTab === 'lifespan' ? (
                   <div className="w-full">

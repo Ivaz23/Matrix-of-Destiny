@@ -39,6 +39,7 @@ interface AppHeaderProps {
 
 const TAB_TITLES: Record<AppNavTabId, { title: string; subtitle: string; icon: string }> = {
   matrix: { title: 'Матрица Судьбы', subtitle: '22 сакральных аркана души', icon: '🌟' },
+  keyto: { title: 'KeyTo: Денежная Сила', subtitle: 'Цифровая психология, закон циклов (+3) и денежный код', icon: '💰' },
   lifespan: { title: 'Хронос: Сроки & Долголетие', subtitle: 'Таро на сроки событий, возрастные рубежи и витальность', icon: '⏳' },
   psychology: { title: 'Психологический Портрет', subtitle: 'Плюсы, минусы, тени и ключи трансформации 22 арканов', icon: '🧠' },
   caching: { title: 'Кэширование & Оптимизация', subtitle: 'Управление памятью, предрасчет 22 арканов и офлайн-режим', icon: '⚡' },
